@@ -430,6 +430,7 @@ const AdminDashboard = () => {
 
         try {
             await reorderProjects(sourceProjectId, projectId);
+            setStatus('Project order updated.');
         } catch (reorderError) {
             setError(reorderError?.message || 'Could not reorder projects right now.');
         } finally {
@@ -676,6 +677,7 @@ const AdminDashboard = () => {
 
         try {
             await reorderExperienceItems(targetCategory, sourceItemId, targetItemId);
+            setStatus('Experience order updated.');
         } catch (reorderError) {
             setError(reorderError?.message || 'Could not reorder experience right now.');
         } finally {

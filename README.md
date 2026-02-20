@@ -113,6 +113,81 @@ Notes:
 - The above write policy is convenient for a portfolio admin running fully client-side.
 - For stronger security, move writes behind a server endpoint and use stricter policies.
 
+## Supabase Experience Sync (Cross-Device)
+
+Experience skills CRUD and reordering use localStorage by default.  
+To sync skills across browsers/devices, set this variable:
+
+```
+REACT_APP_SUPABASE_EXPERIENCE_TABLE=portfolio_experience
+```
+
+Use this SQL in Supabase SQL Editor:
+
+```sql
+create table if not exists public.portfolio_experience (
+  id text primary key,
+  category text not null check (category in ('frontend', 'backend')),
+  skill text not null,
+  level text not null default 'Intermediate',
+  sort_order bigint not null default 0,
+  created_at bigint not null
+);
+
+alter table public.portfolio_experience enable row level security;
+
+create policy "Public read experience"
+on public.portfolio_experience
+for select
+to anon
+using (true);
+
+create policy "Public write experience"
+on public.portfolio_experience
+for all
+to anon
+using (true)
+with check (true);
+```
+
+## Supabase Qualification Sync (Cross-Device)
+
+Qualification timeline CRUD uses localStorage by default.  
+To sync qualification entries across browsers/devices, set:
+
+```
+REACT_APP_SUPABASE_QUALIFICATION_TABLE=portfolio_qualification
+```
+
+Use this SQL in Supabase SQL Editor:
+
+```sql
+create table if not exists public.portfolio_qualification (
+  id text primary key,
+  category text not null check (category in ('education', 'experience')),
+  title text not null,
+  subtitle text not null,
+  period text not null,
+  sort_order bigint not null default 0,
+  created_at bigint not null
+);
+
+alter table public.portfolio_qualification enable row level security;
+
+create policy "Public read qualification"
+on public.portfolio_qualification
+for select
+to anon
+using (true);
+
+create policy "Public write qualification"
+on public.portfolio_qualification
+for all
+to anon
+using (true)
+with check (true);
+```
+
 ## Available Scripts
 
 In the project directory, you can run:

@@ -125,6 +125,7 @@
   overflow: hidden;
   position: relative;
   height: 250px;
+  background: #0f172a;
   transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
@@ -160,13 +161,14 @@
 .portfolio__item-image img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  object-position: center;
   transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   will-change: transform;
 }
 
 .portfolio__item:hover .portfolio__item-image img {
-  transform: scale(1.15) rotate(2deg);
+  transform: scale(1.01);
 }
 
 /* ========== OVERLAY EFFECTS ========== */
@@ -497,10 +499,18 @@
 }
 
 /* ========== BADGES ========== */
-.portfolio__badge {
+.portfolio__badge-stack {
   position: absolute;
   top: 1rem;
   right: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.45rem;
+  z-index: 15;
+}
+
+.portfolio__badge {
   padding: 0.3rem 0.8rem;
   border-radius: 2rem;
   font-size: 0.7rem;
@@ -747,7 +757,7 @@
 }
 
 .portfolio__item:hover .portfolio__item-image img {
-  transform: scale(1.06);
+  transform: scale(1.01);
 }
 
 .portfolio__badge {

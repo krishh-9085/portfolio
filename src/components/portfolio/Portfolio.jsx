@@ -111,6 +111,17 @@ const Portfolio = () => {
           .map(({ id, image, title, github, demo, tags = [], desc, isNew, isFeatured, isPopular }, index) => {
             const isVisible = visibleItems.has(String(id));
             const animationDelay = `${index * 100}ms`;
+            const badges = [];
+
+            if (isNew) {
+              badges.push({ key: 'new', className: 'portfolio__badge--new', label: 'NEW' });
+            }
+            if (isFeatured) {
+              badges.push({ key: 'featured', className: 'portfolio__badge--featured', label: 'Featured' });
+            }
+            if (isPopular) {
+              badges.push({ key: 'popular', className: 'portfolio__badge--popular', label: 'Popular' });
+            }
 
             return (
               <article
@@ -205,9 +216,15 @@ const Portfolio = () => {
                 </div>
 
                 {/* Special badges */}
-                {isNew && <div className='portfolio__badge portfolio__badge--new'>NEW</div>}
-                {isFeatured && <div className='portfolio__badge portfolio__badge--featured'>Featured</div>}
-                {isPopular && <div className='portfolio__badge portfolio__badge--popular'>Popular</div>}
+                {badges.length > 0 && (
+                  <div className='portfolio__badge-stack'>
+                    {badges.map((badge) => (
+                      <div key={badge.key} className={`portfolio__badge ${badge.className}`}>
+                        {badge.label}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </article>
             );
           })}

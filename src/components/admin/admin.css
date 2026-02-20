@@ -193,6 +193,7 @@
   background: rgba(2, 6, 23, 0.45);
   cursor: grab;
   transition: border-color 160ms ease, background-color 160ms ease, opacity 160ms ease;
+  overflow: hidden;
 }
 
 .admin-project-item.is-editing {
@@ -246,6 +247,7 @@
 
 .admin-project-meta {
   min-width: 0;
+  flex: 1 1 auto;
 }
 
 .admin-project-item h3 {
@@ -256,6 +258,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 .admin-project-item p {
@@ -265,6 +268,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 .admin-project-drag-label {
@@ -331,6 +335,7 @@
   align-items: center;
   gap: 0.5rem;
   flex-wrap: wrap;
+  flex: 0 0 auto;
 }
 
 .admin-info {

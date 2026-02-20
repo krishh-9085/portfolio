@@ -1,7 +1,12 @@
 import defaultProjects from '../data/defaultProjects';
 import { isAdminAuthenticated } from './adminAuthService';
+
 const PROJECTS_STORAGE_KEY = 'portfolio_projects_v1';
 const PROJECTS_UPDATED_EVENT = 'portfolio-projects-updated';
+const PROJECTS_REFRESH_MS = 30000;
+const SUPABASE_URL = process.env.REACT_APP_SUPABASE_URL;
+const SUPABASE_ANON_KEY = process.env.REACT_APP_SUPABASE_ANON_KEY;
+const SUPABASE_PROJECTS_TABLE = process.env.REACT_APP_SUPABASE_PROJECTS_TABLE || 'portfolio_projects';
 
 const normalizeProject = (project, fallbackId = String(Date.now())) => ({
     id: String(project.id || fallbackId),
@@ -14,20 +19,80 @@ const normalizeProject = (project, fallbackId = String(Date.now())) => ({
     isNew: Boolean(project.isNew),
     isFeatured: Boolean(project.isFeatured),
     isPopular: Boolean(project.isPopular),
-    createdAt: Number(project.createdAt || Date.now())
+    createdAt: Number(project.createdAt || Date.now()),
+    sortOrder: Number(project.sortOrder || 0)
 });
 
 const canUseStorage = typeof window !== 'undefined' && typeof window.localStorage !== 'undefined';
+const getBaseUrl = () => String(SUPABASE_URL || '').replace(/\/$/, '');
+const isSupabaseProjectsConfigured = () => Boolean(getBaseUrl() && SUPABASE_ANON_KEY && SUPABASE_PROJECTS_TABLE);
 
-const readProjects = () => {
+const createSupabaseHeaders = (extra = {}) => ({
+    apikey: SUPABASE_ANON_KEY,
+    Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+    ...extra
+});
+
+const projectToRow = (project) => ({
+    id: String(project.id),
+    title: project.title || 'Untitled Project',
+    image: project.image || '',
+    github: project.github || '',
+    demo: project.demo || '',
+    tags: Array.isArray(project.tags) ? project.tags : [],
+    desc: project.desc || '',
+    is_new: Boolean(project.isNew),
+    is_featured: Boolean(project.isFeatured),
+    is_popular: Boolean(project.isPopular),
+    created_at: Number(project.createdAt || Date.now()),
+    sort_order: Number(project.sortOrder || 0)
+});
+
+const rowToProject = (row, index = 0) => normalizeProject({
+    id: row.id,
+    title: row.title,
+    image: row.image,
+    github: row.github,
+    demo: row.demo,
+    tags: Array.isArray(row.tags) ? row.tags : [],
+    desc: row.desc,
+    isNew: row.is_new,
+    isFeatured: row.is_featured,
+    isPopular: row.is_popular,
+    createdAt: row.created_at,
+    sortOrder: row.sort_order ?? index
+}, row.id);
+
+const getSupabaseProjectsEndpoint = (query = '') => {
+    const encodedTable = encodeURIComponent(SUPABASE_PROJECTS_TABLE);
+    return `${getBaseUrl()}/rest/v1/${encodedTable}${query ? `?${query}` : ''}`;
+};
+
+const parseSupabaseError = async (response, fallbackMessage) => {
+    let json = null;
+    try {
+        json = await response.json();
+    } catch {
+        json = null;
+    }
+    return json?.message || json?.error || fallbackMessage;
+};
+
+const readProjectsFromStorage = () => {
     if (!canUseStorage) {
-        return defaultProjects.map((project) => normalizeProject(project, project.id));
+        return defaultProjects.map((project, index) => normalizeProject({
+            ...project,
+            sortOrder: index
+        }, project.id));
     }
 
     const raw = window.localStorage.getItem(PROJECTS_STORAGE_KEY);
 
     if (!raw) {
-        const initialProjects = defaultProjects.map((project) => normalizeProject(project, project.id));
+        const initialProjects = defaultProjects.map((project, index) => normalizeProject({
+            ...project,
+            sortOrder: index
+        }, project.id));
         window.localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(initialProjects));
         return initialProjects;
     }
@@ -38,13 +103,16 @@ const readProjects = () => {
             return [];
         }
 
-        return parsed.map((project, index) => normalizeProject(project, `${Date.now()}-${index}`));
+        return parsed.map((project, index) => normalizeProject({
+            ...project,
+            sortOrder: Number(project?.sortOrder ?? index)
+        }, `${Date.now()}-${index}`));
     } catch {
         return [];
     }
 };
 
-const writeProjects = (projects) => {
+const writeProjectsToStorage = (projects) => {
     if (!canUseStorage) {
         return;
     }
@@ -57,35 +125,121 @@ const writeProjects = (projects) => {
         }
         throw error;
     }
+};
 
+const readProjectsFromSupabase = async () => {
+    const query = 'select=*&order=sort_order.asc,created_at.desc';
+    const response = await fetch(getSupabaseProjectsEndpoint(query), {
+        method: 'GET',
+        headers: createSupabaseHeaders()
+    });
+
+    if (!response.ok) {
+        const message = await parseSupabaseError(response, 'Could not load projects right now.');
+        throw new Error(message);
+    }
+
+    const rows = await response.json();
+    if (!Array.isArray(rows)) {
+        return [];
+    }
+
+    return rows.map((row, index) => rowToProject(row, index));
+};
+
+const updateProjectSortOrders = async (projects) => {
+    const payload = projects.map((project, index) => ({
+        id: String(project.id),
+        sort_order: index
+    }));
+
+    const response = await fetch(getSupabaseProjectsEndpoint('on_conflict=id'), {
+        method: 'POST',
+        headers: createSupabaseHeaders({
+            'Content-Type': 'application/json',
+            Prefer: 'resolution=merge-duplicates'
+        }),
+        body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+        const message = await parseSupabaseError(response, 'Could not reorder projects.');
+        throw new Error(message);
+    }
+};
+
+const emitProjectsUpdated = (projects) => {
+    if (typeof window === 'undefined') {
+        return;
+    }
     window.dispatchEvent(new CustomEvent(PROJECTS_UPDATED_EVENT, { detail: projects }));
 };
 
+const readProjects = async () => {
+    if (isSupabaseProjectsConfigured()) {
+        return readProjectsFromSupabase();
+    }
+    return readProjectsFromStorage();
+};
+
+const writeProjects = async (projects) => {
+    if (isSupabaseProjectsConfigured()) {
+        await updateProjectSortOrders(projects);
+        emitProjectsUpdated(projects);
+        return;
+    }
+
+    writeProjectsToStorage(projects);
+    emitProjectsUpdated(projects);
+};
+
 export const subscribeToProjects = (onData, onError) => {
-    try {
-        onData(readProjects());
-    } catch (error) {
-        if (onError) {
-            onError(error);
+    const syncProjects = async () => {
+        try {
+            onData(await readProjects());
+        } catch (error) {
+            if (onError) {
+                onError(error);
+            }
         }
+    };
+
+    syncProjects();
+
+    const handleInTabUpdate = () => {
+        syncProjects();
+    };
+
+    if (typeof window !== 'undefined') {
+        window.addEventListener(PROJECTS_UPDATED_EVENT, handleInTabUpdate);
+    }
+
+    if (isSupabaseProjectsConfigured()) {
+        const refreshTimer = setInterval(syncProjects, PROJECTS_REFRESH_MS);
+
+        return () => {
+            clearInterval(refreshTimer);
+            if (typeof window !== 'undefined') {
+                window.removeEventListener(PROJECTS_UPDATED_EVENT, handleInTabUpdate);
+            }
+        };
     }
 
     if (!canUseStorage) {
-        return () => { };
+        return () => {
+            if (typeof window !== 'undefined') {
+                window.removeEventListener(PROJECTS_UPDATED_EVENT, handleInTabUpdate);
+            }
+        };
     }
 
     const handleStorage = (event) => {
         if (event.key === PROJECTS_STORAGE_KEY) {
-            onData(readProjects());
+            syncProjects();
         }
     };
 
-    const handleInTabUpdate = () => {
-        onData(readProjects());
-    };
-
     window.addEventListener('storage', handleStorage);
-    window.addEventListener(PROJECTS_UPDATED_EVENT, handleInTabUpdate);
 
     return () => {
         window.removeEventListener('storage', handleStorage);
@@ -98,6 +252,8 @@ export const addProject = async (project) => {
         throw new Error('Unauthorized admin action.');
     }
 
+    const current = await readProjects();
+    const topSortOrder = current.length > 0 ? Math.min(...current.map((item) => Number(item.sortOrder || 0))) - 1 : 0;
     const payload = normalizeProject({
         id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
         title: project.title,
@@ -109,11 +265,33 @@ export const addProject = async (project) => {
         isNew: Boolean(project.isNew),
         isFeatured: Boolean(project.isFeatured),
         isPopular: Boolean(project.isPopular),
-        createdAt: Date.now()
+        createdAt: Date.now(),
+        sortOrder: topSortOrder
     });
 
-    const current = readProjects();
-    writeProjects([payload, ...current]);
+    if (isSupabaseProjectsConfigured()) {
+        const response = await fetch(getSupabaseProjectsEndpoint(), {
+            method: 'POST',
+            headers: createSupabaseHeaders({
+                'Content-Type': 'application/json',
+                Prefer: 'return=representation'
+            }),
+            body: JSON.stringify(projectToRow(payload))
+        });
+
+        if (!response.ok) {
+            const message = await parseSupabaseError(response, 'Could not add project right now.');
+            throw new Error(message);
+        }
+
+        const rows = await response.json();
+        const created = Array.isArray(rows) && rows[0] ? rowToProject(rows[0]) : payload;
+        emitProjectsUpdated([created, ...current]);
+        return created;
+    }
+
+    const next = [payload, ...current];
+    await writeProjects(next);
     return payload;
 };
 
@@ -123,29 +301,45 @@ export const updateProject = async (projectId, project) => {
     }
 
     const targetId = String(projectId);
-    const current = readProjects();
-    let updatedProject = null;
+    const current = await readProjects();
+    const existing = current.find((item) => item.id === targetId);
 
-    const next = current.map((item) => {
-        if (item.id !== targetId) {
-            return item;
-        }
-
-        updatedProject = normalizeProject({
-            ...item,
-            ...project,
-            id: item.id,
-            createdAt: item.createdAt
-        }, item.id);
-
-        return updatedProject;
-    });
-
-    if (!updatedProject) {
+    if (!existing) {
         throw new Error('Project not found.');
     }
 
-    writeProjects(next);
+    const updatedProject = normalizeProject({
+        ...existing,
+        ...project,
+        id: existing.id,
+        createdAt: existing.createdAt,
+        sortOrder: existing.sortOrder
+    }, existing.id);
+
+    if (isSupabaseProjectsConfigured()) {
+        const response = await fetch(getSupabaseProjectsEndpoint(`id=eq.${encodeURIComponent(targetId)}`), {
+            method: 'PATCH',
+            headers: createSupabaseHeaders({
+                'Content-Type': 'application/json',
+                Prefer: 'return=representation'
+            }),
+            body: JSON.stringify(projectToRow(updatedProject))
+        });
+
+        if (!response.ok) {
+            const message = await parseSupabaseError(response, 'Could not update project right now.');
+            throw new Error(message);
+        }
+
+        const rows = await response.json();
+        const saved = Array.isArray(rows) && rows[0] ? rowToProject(rows[0]) : updatedProject;
+        const next = current.map((item) => (item.id === targetId ? saved : item));
+        emitProjectsUpdated(next);
+        return saved;
+    }
+
+    const next = current.map((item) => (item.id === targetId ? updatedProject : item));
+    await writeProjects(next);
     return updatedProject;
 };
 
@@ -154,9 +348,27 @@ export const removeProject = async (projectId) => {
         throw new Error('Unauthorized admin action.');
     }
 
-    const current = readProjects();
-    const next = current.filter((project) => project.id !== String(projectId));
-    writeProjects(next);
+    const targetId = String(projectId);
+    const current = await readProjects();
+
+    if (isSupabaseProjectsConfigured()) {
+        const response = await fetch(getSupabaseProjectsEndpoint(`id=eq.${encodeURIComponent(targetId)}`), {
+            method: 'DELETE',
+            headers: createSupabaseHeaders()
+        });
+
+        if (!response.ok) {
+            const message = await parseSupabaseError(response, 'Could not remove project right now.');
+            throw new Error(message);
+        }
+
+        const next = current.filter((project) => project.id !== targetId);
+        emitProjectsUpdated(next);
+        return;
+    }
+
+    const next = current.filter((project) => project.id !== targetId);
+    await writeProjects(next);
 };
 
 export const reorderProjects = async (sourceProjectId, targetProjectId) => {
@@ -171,7 +383,7 @@ export const reorderProjects = async (sourceProjectId, targetProjectId) => {
         return readProjects();
     }
 
-    const current = readProjects();
+    const current = await readProjects();
     const sourceIndex = current.findIndex((project) => project.id === sourceId);
     const targetIndex = current.findIndex((project) => project.id === targetId);
 
@@ -183,6 +395,17 @@ export const reorderProjects = async (sourceProjectId, targetProjectId) => {
     const [movedProject] = next.splice(sourceIndex, 1);
     next.splice(targetIndex, 0, movedProject);
 
-    writeProjects(next);
-    return next;
+    const normalizedOrder = next.map((item, index) => normalizeProject({
+        ...item,
+        sortOrder: index
+    }, item.id));
+
+    if (isSupabaseProjectsConfigured()) {
+        await updateProjectSortOrders(normalizedOrder);
+        emitProjectsUpdated(normalizedOrder);
+        return normalizedOrder;
+    }
+
+    await writeProjects(normalizedOrder);
+    return normalizedOrder;
 };

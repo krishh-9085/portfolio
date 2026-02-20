@@ -37,6 +37,54 @@ Notes:
 - Make the resume bucket public (or serve signed URLs from a backend).
 - Admin uploads only PDF files for resume.
 
+## Supabase Projects Sync (Cross-Device)
+
+Project CRUD now uses Supabase when configured, so updates appear across browsers/devices.
+
+Add this variable in `.env`:
+
+```
+REACT_APP_SUPABASE_PROJECTS_TABLE=portfolio_projects
+```
+
+Use this SQL in Supabase SQL Editor:
+
+```sql
+create table if not exists public.portfolio_projects (
+  id text primary key,
+  title text not null,
+  image text not null,
+  github text not null,
+  demo text not null default '',
+  tags jsonb not null default '[]'::jsonb,
+  desc text not null,
+  is_new boolean not null default false,
+  is_featured boolean not null default false,
+  is_popular boolean not null default false,
+  created_at bigint not null,
+  sort_order bigint not null default 0
+);
+
+alter table public.portfolio_projects enable row level security;
+
+create policy "Public read projects"
+on public.portfolio_projects
+for select
+to anon
+using (true);
+
+create policy "Public write projects"
+on public.portfolio_projects
+for all
+to anon
+using (true)
+with check (true);
+```
+
+Notes:
+- The above write policy is convenient for a portfolio admin running fully client-side.
+- For stronger security, move writes behind a server endpoint and use stricter policies.
+
 ## Available Scripts
 
 In the project directory, you can run:

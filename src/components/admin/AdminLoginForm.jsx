@@ -15,6 +15,9 @@ const AdminLoginForm = ({
       placeholder='Admin email'
       value={credentials.email}
       onChange={(event) => setCredentials((prev) => ({ ...prev, email: event.target.value }))}
+      autoCapitalize='none'
+      autoCorrect='off'
+      spellCheck={false}
       required
     />
     <input
@@ -22,6 +25,9 @@ const AdminLoginForm = ({
       placeholder='Password'
       value={credentials.password}
       onChange={(event) => setCredentials((prev) => ({ ...prev, password: event.target.value }))}
+      autoCapitalize='none'
+      autoCorrect='off'
+      spellCheck={false}
       required
     />
 

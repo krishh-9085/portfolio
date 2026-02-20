@@ -1,156 +1,201 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <title>Portfolio Contact Message</title>
-</head>
-<body style="margin: 0; padding: 20px; background-color: #f4f7fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
-    
-    <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.1);">
-        
-        <!-- Header Section -->
-        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 30px; text-align: center; position: relative;">
-            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48cGF0aCBkPSJtMzYgMzRjMC0yLjIwOSAxLjc5MS00IDQtNHM0IDEuNzkxIDQgNGMwIDIuMjA5LTEuNzkxIDQtNCA0cy00LTEuNzkxLTQtNCIvPjwvZz48L2c+PC9zdmc+'); opacity: 0.3;"></div>
-            <div style="position: relative; z-index: 1;">
-                <div style="font-size: 48px; margin-bottom: 10px;">📬</div>
-                <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 700; text-shadow: 0 2px 4px rgba(0,0,0,0.2);">
-                    New Portfolio Message
+  </head>
+  <body
+    style="
+      margin: 0;
+      padding: 0;
+      background-color: #f7f7f7;
+      font-family: Arial, Helvetica, sans-serif;
+      color: #222;
+    "
+  >
+    <table
+      role="presentation"
+      cellpadding="0"
+      cellspacing="0"
+      border="0"
+      width="100%"
+      style="background-color: #f7f7f7; padding: 16px 8px"
+    >
+      <tr>
+        <td align="center">
+          <table
+            role="presentation"
+            cellpadding="0"
+            cellspacing="0"
+            border="0"
+            width="100%"
+            style="
+              max-width: 620px;
+              background-color: #ffffff;
+              border: 1px solid #dddddd;
+              border-radius: 14px;
+              overflow: hidden;
+            "
+          >
+            <tr>
+              <td style="padding: 20px 18px; border-bottom: 1px solid #e8e8e8">
+                <h1
+                  style="
+                    margin: 0;
+                    font-size: 22px;
+                    line-height: 1.3;
+                    color: #111;
+                  "
+                >
+                  New Contact Message
                 </h1>
-                <p style="color: rgba(255,255,255,0.9); margin: 8px 0 0 0; font-size: 16px;">
-                    Someone wants to connect with you!
+                <p
+                  style="
+                    margin: 8px 0 0;
+                    font-size: 14px;
+                    line-height: 1.5;
+                    color: #555;
+                  "
+                >
+                  You received a new message from your portfolio website.
                 </p>
-            </div>
-        </div>
+              </td>
+            </tr>
 
-        <!-- Main Content -->
-        <div style="padding: 40px 30px;">
-            
-            <!-- Welcome Message -->
-            <div style="text-align: center; margin-bottom: 30px;">
-                <p style="font-size: 18px; color: #2c3e50; margin: 0; font-weight: 500;">
-                    🎉 Great news! You have a new message from <strong style="color: #667eea;">{{from_name}}</strong>
+            <tr>
+              <td style="padding: 16px 18px 8px">
+                <p
+                  style="
+                    margin: 0;
+                    font-size: 13px;
+                    color: #666;
+                    font-weight: 700;
+                  "
+                >
+                  From
                 </p>
-            </div>
+                <p
+                  style="
+                    margin: 6px 0 0;
+                    font-size: 18px;
+                    line-height: 1.4;
+                    color: #111;
+                    font-weight: 700;
+                  "
+                >
+                  {{from_name}}
+                </p>
+                <p
+                  style="
+                    margin: 4px 0 0;
+                    font-size: 14px;
+                    line-height: 1.5;
+                    color: #0b57d0;
+                    word-break: break-word;
+                  "
+                >
+                  {{reply_to}}
+                </p>
+              </td>
+            </tr>
 
-            <!-- Sender Info Card -->
-            <div style="background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%); border: 2px solid #e8ecff; border-radius: 12px; padding: 25px; margin: 25px 0; position: relative; overflow: hidden;">
-                <div style="position: absolute; top: -20px; right: -20px; width: 80px; height: 80px; background: linear-gradient(135deg, #667eea20, #764ba220); border-radius: 50%; opacity: 0.5;"></div>
-                <div style="position: relative; z-index: 1;">
-                    <table style="width: 100%; border-collapse: collapse;">
-                        <tr>
-                            <td style="width: 70px; vertical-align: top; padding-right: 20px;">
-                                <div style="
-                                    width: 60px;
-                                    height: 60px;
-                                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                                    border-radius: 50%;
-                                    display: flex;
-                                    align-items: center;
-                                    justify-content: center;
-                                    font-size: 28px;
-                                    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-                                ">
-                                    👤
-                                </div>
-                            </td>
-                            <td style="vertical-align: top;">
-                                <div style="margin-bottom: 12px;">
-                                    <h2 style="margin: 0; font-size: 22px; color: #2c3e50; font-weight: 600;">
-                                        {{from_name}}
-                                    </h2>
-                                </div>
-                                <div style="background-color: white; padding: 8px 15px; border-radius: 20px; display: inline-block; border: 1px solid #e0e6ff;">
-                                    <span style="color: #667eea; font-size: 14px; font-weight: 500;">
-                                        📧 {{reply_to}}
-                                    </span>
-                                </div>
-                            </td>
-                        </tr>
-                    </table>
+            <tr>
+              <td style="padding: 14px 18px 8px">
+                <p
+                  style="
+                    margin: 0 0 8px;
+                    font-size: 13px;
+                    color: #666;
+                    font-weight: 700;
+                  "
+                >
+                  Message
+                </p>
+                <div
+                  style="
+                    border: 1px solid #dddddd;
+                    background-color: #fafafa;
+                    padding: 14px;
+                    border-radius: 10px;
+                  "
+                >
+                  <p
+                    style="
+                      margin: 0;
+                      font-size: 15px;
+                      line-height: 1.7;
+                      color: #222;
+                      white-space: pre-wrap;
+                    "
+                  >
+                    {{message}}
+                  </p>
                 </div>
-            </div>
+              </td>
+            </tr>
 
-            <!-- Message Content -->
-            <div style="background-color: #ffffff; border: 2px solid #f0f0f0; border-radius: 12px; padding: 25px; margin: 25px 0; position: relative;">
-                <div style="margin-bottom: 15px;">
-                    <h3 style="margin: 0; color: #2c3e50; font-size: 18px; font-weight: 600; display: flex; align-items: center;">
-                        💬 Message Content
-                    </h3>
-                </div>
-                <div style="
-                    font-size: 16px; 
-                    color: #34495e; 
-                    line-height: 1.7; 
-                    background-color: #f9f9f9; 
-                    padding: 20px; 
-                    border-radius: 8px; 
-                    border-left: 4px solid #667eea;
-                    font-style: italic;
-                ">
-                    "{{message}}"
-                </div>
-            </div>
+            <tr>
+              <td style="padding: 18px">
+                <a
+                  href="mailto:{{reply_to}}?subject=Re:%20Portfolio%20Message&body=Hi%20{{from_name}},%0D%0A%0D%0AThank%20you%20for%20reaching%20out."
+                  style="
+                    display: inline-block;
+                    background-color: #111;
+                    color: #fff;
+                    text-decoration: none;
+                    font-size: 14px;
+                    font-weight: 700;
+                    padding: 10px 14px;
+                    border-radius: 8px;
+                  "
+                >
+                  Reply
+                </a>
+              </td>
+            </tr>
 
-            <!-- Action Buttons -->
-            <div style="background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%); padding: 30px; border-radius: 12px; text-align: center; margin: 30px 0;">
-                <h3 style="margin: 0 0 20px 0; color: #2c3e50; font-size: 18px; font-weight: 600;">
-                    🚀 Quick Actions
-                </h3>
-                <div style="display: inline-block; margin: 0 10px;">
-                    <a href="mailto:{{reply_to}}?subject=Re: Message from Portfolio Website&body=Hi {{from_name}},%0A%0AThank you for reaching out through my portfolio website. %0A%0A" style="
-                        display: inline-block;
-                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                        color: white;
-                        padding: 15px 30px;
-                        text-decoration: none;
-                        border-radius: 8px;
-                        font-weight: 600;
-                        font-size: 16px;
-                        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-                        transition: all 0.3s ease;
-                    ">
-                        📧 Reply to {{from_name}}
-                    </a>
-                </div>
-            </div>
-
-            <!-- Message Details -->
-            <div style="background-color: #f8f9fa; border-radius: 8px; padding: 20px; margin-top: 20px;">
-                <h4 style="margin: 0 0 15px 0; color: #6c757d; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">
-                    📋 Message Details
-                </h4>
-                <table style="width: 100%; font-size: 14px; color: #6c757d;">
-                    <tr>
-                        <td style="padding: 8px 0; border-bottom: 1px solid #e9ecef;"><strong>From:</strong></td>
-                        <td style="padding: 8px 0; border-bottom: 1px solid #e9ecef;">{{from_name}} ({{reply_to}})</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 8px 0; border-bottom: 1px solid #e9ecef;"><strong>Received:</strong></td>
-                        <td style="padding: 8px 0; border-bottom: 1px solid #e9ecef;">{{current_date}}</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 8px 0;"><strong>Source:</strong></td>
-                        <td style="padding: 8px 0;">Portfolio Contact Form</td>
-                    </tr>
+            <tr>
+              <td
+                style="padding: 12px 18px 18px; border-top: 1px solid #e8e8e8"
+              >
+                <table
+                  role="presentation"
+                  cellpadding="0"
+                  cellspacing="0"
+                  border="0"
+                  width="100%"
+                >
+                  <tr>
+                    <td
+                      style="
+                        padding: 4px 0;
+                        font-size: 13px;
+                        color: #666;
+                        width: 96px;
+                      "
+                    >
+                      Received
+                    </td>
+                    <td style="padding: 4px 0; font-size: 13px; color: #222">
+                      {{current_date}}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 4px 0; font-size: 13px; color: #666">
+                      Source
+                    </td>
+                    <td style="padding: 4px 0; font-size: 13px; color: #222">
+                      Portfolio Contact Form
+                    </td>
+                  </tr>
                 </table>
-            </div>
-
-        </div>
-
-        <!-- Footer -->
-        <div style="background-color: #f8f9fa; text-align: center; padding: 25px; border-top: 1px solid #e9ecef;">
-            <p style="margin: 0; color: #6c757d; font-size: 14px;">
-                This message was sent through your portfolio website contact form
-            </p>
-            <div style="margin-top: 15px;">
-                <span style="display: inline-block; background-color: #e9ecef; color: #6c757d; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 500;">
-                    🌐 Krishna's Portfolio
-                </span>
-            </div>
-        </div>
-
-    </div>
-
-</body>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
 </html>

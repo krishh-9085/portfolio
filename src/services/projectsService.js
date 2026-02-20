@@ -148,9 +148,9 @@ const readProjectsFromSupabase = async () => {
 };
 
 const updateProjectSortOrders = async (projects) => {
-    const payload = projects.map((project, index) => ({
-        id: String(project.id),
-        sort_order: index
+    const payload = projects.map((project, index) => projectToRow({
+        ...project,
+        sortOrder: index
     }));
 
     const response = await fetch(getSupabaseProjectsEndpoint('on_conflict=id'), {

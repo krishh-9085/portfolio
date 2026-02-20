@@ -67,6 +67,8 @@
 html {
   scroll-behavior: smooth;
   scroll-padding-top: 4rem; /* Account for fixed header */
+  overscroll-behavior-y: none;
+  overscroll-behavior-x: none;
 }
 
 /* Enhanced smooth scrolling */
@@ -94,6 +96,8 @@ body {
   font-size: var(--font-body);
   line-height: 1.7;
   overflow-x: hidden; /* Prevent horizontal scroll */
+  overscroll-behavior-y: none;
+  overscroll-behavior-x: none;
 }
 
 /* Keep transitions on interactive elements instead of every node */

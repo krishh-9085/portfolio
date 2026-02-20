@@ -13,7 +13,7 @@ const AdminQualificationPanel = ({
   onCancelEditingQualification,
   onStartEditingQualification,
   isDeletingQualificationId,
-  onDeleteQualification
+  onRequestDeleteQualification
 }) => (
   <section className='admin-qualification-panel'>
     <h2 className='admin-title'>Qualification Timeline</h2>
@@ -132,7 +132,7 @@ const AdminQualificationPanel = ({
                           <button
                             type='button'
                             className='admin-btn admin-btn-danger'
-                            onClick={() => onDeleteQualification(item.id)}
+                            onClick={() => onRequestDeleteQualification(item)}
                             disabled={isDeletingQualificationId === item.id}
                           >
                             {isDeletingQualificationId === item.id ? 'Removing...' : 'Remove'}

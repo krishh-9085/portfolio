@@ -14,7 +14,7 @@ const AdminExperiencePanel = ({
   onCancelEditingExperience,
   onStartEditingExperience,
   isDeletingExperienceId,
-  onDeleteExperience,
+  onRequestDeleteExperience,
   draggingExperienceId,
   dropTargetExperienceId,
   onExperienceDragStart,
@@ -141,7 +141,7 @@ const AdminExperiencePanel = ({
                           <button
                             type='button'
                             className='admin-btn admin-btn-danger'
-                            onClick={() => onDeleteExperience(item.id)}
+                            onClick={() => onRequestDeleteExperience(item)}
                             disabled={isDeletingExperienceId === item.id}
                           >
                             {isDeletingExperienceId === item.id ? 'Removing...' : 'Remove'}

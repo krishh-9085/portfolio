@@ -29,6 +29,7 @@ Resume drag-and-drop uploads use Supabase Storage. Add these variables in `.env`
 ```
 REACT_APP_SUPABASE_URL=https://your-project-ref.supabase.co
 REACT_APP_SUPABASE_ANON_KEY=your_anon_key
+REACT_APP_SUPABASE_RESUME_TABLE=portfolio_resume
 REACT_APP_SUPABASE_RESUME_BUCKET=resumes
 REACT_APP_SUPABASE_RESUME_FOLDER=portfolio
 ```
@@ -36,6 +37,33 @@ REACT_APP_SUPABASE_RESUME_FOLDER=portfolio
 Notes:
 - Make the resume bucket public (or serve signed URLs from a backend).
 - Admin uploads only PDF files for resume.
+- `REACT_APP_SUPABASE_RESUME_TABLE` enables cross-device sync for the resume URL metadata.
+
+Use this SQL in Supabase SQL Editor:
+
+```sql
+create table if not exists public.portfolio_resume (
+  id text primary key,
+  url text not null,
+  file_name text not null default 'Resume.pdf',
+  updated_at timestamptz not null default now()
+);
+
+alter table public.portfolio_resume enable row level security;
+
+create policy "Public read resume"
+on public.portfolio_resume
+for select
+to anon
+using (true);
+
+create policy "Public write resume"
+on public.portfolio_resume
+for all
+to anon
+using (true)
+with check (true);
+```
 
 ## Supabase Projects Sync (Cross-Device)
 

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { addProject, removeProject, reorderProjects, subscribeToProjects, updateProject } from '../../services/projectsService';
 import { subscribeToResume, updateResume } from '../../services/resumeService';
 import { addExperienceItem, removeExperienceItem, reorderExperienceItems, subscribeToExperience, updateExperienceItem } from '../../services/experienceService';
@@ -20,14 +20,16 @@ import {
 } from './constants';
 import AdminHeader from './AdminHeader';
 import AdminLoginForm from './AdminLoginForm';
-import AdminStatusMessages from './AdminStatusMessages';
 import AdminResumePanel from './AdminResumePanel';
 import AdminExperiencePanel from './AdminExperiencePanel';
 import AdminQualificationPanel from './AdminQualificationPanel';
 import AdminProjectsPanel from './AdminProjectsPanel';
+import AdminToastContainer from './AdminToastContainer';
+import AdminConfirmDialog from './AdminConfirmDialog';
 import './admin.css';
 
 const AdminDashboard = () => {
+    const TOAST_DURATION_MS = 3200;
     const [projects, setProjects] = useState([]);
     const [resume, setResume] = useState({ url: '', fileName: 'Resume.pdf' });
     const [experience, setExperience] = useState({ frontend: [], backend: [] });
@@ -66,6 +68,15 @@ const AdminDashboard = () => {
     const [qualificationForm, setQualificationForm] = useState(initialQualificationForm);
     const [qualificationEditForm, setQualificationEditForm] = useState(initialQualificationForm);
     const [credentials, setCredentials] = useState({ email: '', password: '' });
+    const [toasts, setToasts] = useState([]);
+    const [confirmDialog, setConfirmDialog] = useState({
+        isOpen: false,
+        title: '',
+        message: '',
+        confirmLabel: 'Delete'
+    });
+    const [confirmAction, setConfirmAction] = useState(null);
+    const draggingProjectIdRef = useRef('');
 
     useEffect(() => {
         const unsubAuth = subscribeToAdminAuth((nextState) => {
@@ -144,6 +155,69 @@ const AdminDashboard = () => {
         [form.tags]
     );
 
+    const addToast = (message, type = 'success') => {
+        if (!message) {
+            return;
+        }
+
+        const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+        setToasts((prev) => [...prev, { id, message, type }]);
+        window.setTimeout(() => {
+            setToasts((prev) => prev.filter((toast) => toast.id !== id));
+        }, TOAST_DURATION_MS);
+    };
+
+    const dismissToast = (toastId) => {
+        setToasts((prev) => prev.filter((toast) => toast.id !== toastId));
+    };
+
+    const openDeleteConfirm = ({ title, message, confirmLabel = 'Delete' }, action) => {
+        setConfirmDialog({
+            isOpen: true,
+            title,
+            message,
+            confirmLabel
+        });
+        setConfirmAction(() => action);
+    };
+
+    const closeDeleteConfirm = () => {
+        setConfirmDialog({
+            isOpen: false,
+            title: '',
+            message: '',
+            confirmLabel: 'Delete'
+        });
+        setConfirmAction(null);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!confirmAction) {
+            closeDeleteConfirm();
+            return;
+        }
+
+        const action = confirmAction;
+        closeDeleteConfirm();
+        await action();
+    };
+
+    useEffect(() => {
+        if (!error) {
+            return;
+        }
+        addToast(error, 'error');
+        setError('');
+    }, [error]);
+
+    useEffect(() => {
+        if (!status) {
+            return;
+        }
+        addToast(status, 'success');
+        setStatus('');
+    }, [status]);
+
     const handleAddProject = async (event) => {
         event.preventDefault();
         setError('');
@@ -182,6 +256,17 @@ const AdminDashboard = () => {
         } finally {
             setIsDeletingId('');
         }
+    };
+
+    const requestDeleteProject = (project) => {
+        openDeleteConfirm(
+            {
+                title: 'Delete Project?',
+                message: `Are you sure you want to delete "${project.title}"? This action cannot be undone.`,
+                confirmLabel: 'Delete Project'
+            },
+            async () => handleDeleteProject(project.id)
+        );
     };
 
     const startEditing = (project) => {
@@ -292,9 +377,21 @@ const AdminDashboard = () => {
             return;
         }
 
-        setDraggingId(projectId);
+        const sourceId = String(projectId);
+        draggingProjectIdRef.current = sourceId;
+        setDraggingId(sourceId);
         event.dataTransfer.effectAllowed = 'move';
-        event.dataTransfer.setData('text/plain', projectId);
+        event.dataTransfer.setData('text/plain', sourceId);
+        event.dataTransfer.setData('application/x-portfolio-project-id', sourceId);
+    };
+
+    const handleProjectDragEnter = (projectId) => {
+        if (editingId) {
+            return;
+        }
+        if (dropTargetId !== projectId) {
+            setDropTargetId(projectId);
+        }
     };
 
     const handleProjectDragOver = (projectId, event) => {
@@ -316,11 +413,15 @@ const AdminDashboard = () => {
         }
 
         event.preventDefault();
-        const sourceProjectId = event.dataTransfer.getData('text/plain') || draggingId;
+        const sourceProjectId = event.dataTransfer.getData('application/x-portfolio-project-id')
+            || event.dataTransfer.getData('text/plain')
+            || draggingProjectIdRef.current
+            || draggingId;
         setDropTargetId('');
 
         if (!sourceProjectId || sourceProjectId === projectId) {
             setDraggingId('');
+            draggingProjectIdRef.current = '';
             return;
         }
 
@@ -329,17 +430,18 @@ const AdminDashboard = () => {
 
         try {
             await reorderProjects(sourceProjectId, projectId);
-            setStatus('Project order updated.');
         } catch (reorderError) {
             setError(reorderError?.message || 'Could not reorder projects right now.');
         } finally {
             setDraggingId('');
+            draggingProjectIdRef.current = '';
         }
     };
 
     const handleProjectDragEnd = () => {
         setDraggingId('');
         setDropTargetId('');
+        draggingProjectIdRef.current = '';
     };
 
     const handleResumeFile = async (file) => {
@@ -491,6 +593,17 @@ const AdminDashboard = () => {
         }
     };
 
+    const requestDeleteExperience = (item) => {
+        openDeleteConfirm(
+            {
+                title: 'Delete Skill?',
+                message: `Delete "${item.skill}" from your experience list? This action cannot be undone.`,
+                confirmLabel: 'Delete Skill'
+            },
+            async () => handleDeleteExperience(item.id)
+        );
+    };
+
     const findExperienceCategoryById = (itemId) => {
         const targetId = String(itemId);
         if (experience.frontend.some((item) => item.id === targetId)) {
@@ -563,7 +676,6 @@ const AdminDashboard = () => {
 
         try {
             await reorderExperienceItems(targetCategory, sourceItemId, targetItemId);
-            setStatus('Experience order updated.');
         } catch (reorderError) {
             setError(reorderError?.message || 'Could not reorder experience right now.');
         } finally {
@@ -655,6 +767,17 @@ const AdminDashboard = () => {
         }
     };
 
+    const requestDeleteQualification = (item) => {
+        openDeleteConfirm(
+            {
+                title: 'Delete Qualification Entry?',
+                message: `Delete "${item.title}" from your timeline? This action cannot be undone.`,
+                confirmLabel: 'Delete Entry'
+            },
+            async () => handleDeleteQualification(item.id)
+        );
+    };
+
     const handleLogin = async (event) => {
         event.preventDefault();
         setError('');
@@ -703,13 +826,14 @@ const AdminDashboard = () => {
                 onAddProject={handleAddProject}
                 onImageUpload={handleImageUpload}
                 onProjectDragStart={handleProjectDragStart}
+                onProjectDragEnter={handleProjectDragEnter}
                 onProjectDragOver={handleProjectDragOver}
                 onProjectDrop={handleProjectDrop}
                 onProjectDragEnd={handleProjectDragEnd}
                 onSaveProject={handleSaveProject}
                 onCancelEditing={cancelEditing}
                 onStartEditing={startEditing}
-                onDeleteProject={handleDeleteProject}
+                onRequestDeleteProject={requestDeleteProject}
             />
 
             <AdminResumePanel
@@ -740,7 +864,7 @@ const AdminDashboard = () => {
                 onCancelEditingExperience={cancelEditingExperience}
                 onStartEditingExperience={startEditingExperience}
                 isDeletingExperienceId={isDeletingExperienceId}
-                onDeleteExperience={handleDeleteExperience}
+                onRequestDeleteExperience={requestDeleteExperience}
                 draggingExperienceId={draggingExperienceId}
                 dropTargetExperienceId={dropTargetExperienceId}
                 onExperienceDragStart={handleExperienceDragStart}
@@ -764,7 +888,7 @@ const AdminDashboard = () => {
                 onCancelEditingQualification={cancelEditingQualification}
                 onStartEditingQualification={startEditingQualification}
                 isDeletingQualificationId={isDeletingQualificationId}
-                onDeleteQualification={handleDeleteQualification}
+                onRequestDeleteQualification={requestDeleteQualification}
             />
         </div>
     );
@@ -785,9 +909,16 @@ const AdminDashboard = () => {
                             onSubmit={handleLogin}
                         />
                     ))}
-
-                <AdminStatusMessages error={error} status={status} />
             </section>
+            <AdminToastContainer toasts={toasts} onDismiss={dismissToast} />
+            <AdminConfirmDialog
+                isOpen={confirmDialog.isOpen}
+                title={confirmDialog.title}
+                message={confirmDialog.message}
+                confirmLabel={confirmDialog.confirmLabel}
+                onConfirm={handleConfirmDelete}
+                onCancel={closeDeleteConfirm}
+            />
         </main>
     );
 };

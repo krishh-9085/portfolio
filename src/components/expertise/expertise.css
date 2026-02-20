@@ -18,16 +18,16 @@
     border-color 0.35s ease;
   position: relative;
   overflow: hidden;
-  transform: translateY(40px);
-  opacity: 0;
+  transform: none;
+  opacity: 1;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
 }
 
 /* Card entrance animation */
 .expertise--visible {
-  transform: translateY(0);
+  transform: none;
   opacity: 1;
-  animation: cardSlideIn 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation: none;
 }
 
 @keyframes cardSlideIn {
@@ -204,10 +204,9 @@
   padding: 0.55rem 0.65rem;
   transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
   border-radius: 0.5rem;
-  opacity: 0;
-  transform: translateY(10px);
-  animation: itemFadeUp 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-  animation-delay: calc(var(--item-delay) + 0.5s);
+  opacity: 1;
+  transform: none;
+  animation: none;
 }
 
 @keyframes itemFadeUp {

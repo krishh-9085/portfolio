@@ -17,13 +17,14 @@ const AdminProjectsPanel = ({
   onAddProject,
   onImageUpload,
   onProjectDragStart,
+  onProjectDragEnter,
   onProjectDragOver,
   onProjectDrop,
   onProjectDragEnd,
   onSaveProject,
   onCancelEditing,
   onStartEditing,
-  onDeleteProject
+  onRequestDeleteProject
 }) => {
   const renderImageField = (mode, value, setValue, isUploading) => (
     <div className='admin-image-field'>
@@ -99,6 +100,7 @@ const AdminProjectsPanel = ({
                 className={`admin-project-item ${editingId === project.id ? 'is-editing' : ''} ${draggingId === project.id ? 'is-dragging' : ''} ${dropTargetId === project.id ? 'is-drop-target' : ''}`}
                 draggable={!editingId}
                 onDragStart={(event) => onProjectDragStart(project.id, event)}
+                onDragEnter={() => onProjectDragEnter(project.id)}
                 onDragOver={(event) => onProjectDragOver(project.id, event)}
                 onDrop={(event) => onProjectDrop(project.id, event)}
                 onDragEnd={onProjectDragEnd}
@@ -180,7 +182,7 @@ const AdminProjectsPanel = ({
                       <button
                         type='button'
                         className='admin-btn admin-btn-danger'
-                        onClick={() => onDeleteProject(project.id)}
+                        onClick={() => onRequestDeleteProject(project)}
                         disabled={isDeletingId === project.id}
                       >
                         {isDeletingId === project.id ? 'Removing...' : 'Remove'}

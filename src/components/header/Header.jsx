@@ -1,7 +1,7 @@
 import './header.css';
 import Cta from './CTA';
-import MEpng from '../../assets/web-developer-min.png';
-import MEwebp from '../../assets/web-developer-min.webp';
+import MEpng from '../../assets/CTA.png';
+import MEwebp from '../../assets/CTA.png';
 import HeaderSocial from './HeaderSocial';
 import { useTypewriter, Cursor } from 'react-simple-typewriter';
 
@@ -31,7 +31,7 @@ const Header = () => {
             <img
               src={MEpng}
               width='304'
-              height='482'
+              height='560'
               alt='Krishna Rohilla - Professional headshot'
               loading="eager"
             />

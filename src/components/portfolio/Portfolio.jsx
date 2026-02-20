@@ -101,7 +101,7 @@ const Portfolio = () => {
   return (
     <section id='portfolio' ref={portfolioRef}>
       <h1 className='small-title animate-fade-in'>My Recent Work</h1>
-      <h2 className='medium-title animate-fade-in'>Portfolio</h2>
+      <h2 className='medium-title animate-fade-in'>Projects</h2>
 
       {isLoading && <p className='container'>Loading projects...</p>}
 

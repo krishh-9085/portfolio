@@ -23,8 +23,8 @@ const HomePage = ({ darkMode, setDarkMode, myStorage }) => (
       <Nav />
       <About />
       <Experience />
-      <Expertise />
       <Qualification />
+      <Expertise />
       <Portfolio />
       <Contact />
       <Footer />

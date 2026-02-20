@@ -1,38 +1,46 @@
-import { useContext } from 'react';
-import './switch.css';
-import { SwitchContext } from '../../contexts/SwitchContext';
-import { Tooltip } from 'react-tooltip';
+import { useContext, useEffect } from "react";
+import "./switch.css";
+import { SwitchContext } from "../../contexts/SwitchContext";
+import { Tooltip } from "react-tooltip";
 
 function Switch() {
-  const { darkMode, setDarkMode, myStorage } = useContext(SwitchContext);
+  const { darkMode, setDarkMode } = useContext(SwitchContext);
+
+  // Load theme from localStorage on first load
+  useEffect(() => {
+    const saved = localStorage.getItem("darkMode");
+    if (saved !== null) {
+      setDarkMode(saved === "true");
+    }
+  }, []);
+
+  // Apply theme to body + save
+  useEffect(() => {
+    document.body.setAttribute("data-theme", darkMode ? "dark" : "light");
+    localStorage.setItem("darkMode", darkMode);
+  }, [darkMode]);
+
   return (
     <>
       <div
-        data-tooltip-content='Switch Theme'
-        data-tooltip-id='modebtn'
-        className='wrapper'
+        className="wrapper"
+        data-tooltip-id="modebtn"
+        data-tooltip-content="Switch Theme"
       >
         <input
-          onChange={() => {
-            setDarkMode(!darkMode);
-            myStorage.setItem('darkMode', !darkMode);
-          }}
+          type="checkbox"
+          className="switch"
+          aria-label="Toggle theme"
           checked={!darkMode}
-          type='checkbox'
-          name='checkbox'
-          className='switch'
-          aria-label='Switch Theme'
+          onChange={() => setDarkMode(prev => !prev)}
         />
       </div>
+
       <Tooltip
-        id='modebtn'
-        place='left'
-        variant='dark'
-        effect='solid'
-        className='tooltip-mode'
-      >
-        Switch Theme
-      </Tooltip>
+        id="modebtn"
+        place="left"
+        className="tooltip-mode"
+      />
     </>
   );
 }

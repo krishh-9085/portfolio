@@ -32,7 +32,7 @@ const Nav = () => {
     const observer = new IntersectionObserver(observerCallback, observerOptions);
     
     // Observe all sections
-    const sections = ['home', 'about', 'experience', 'expertise', 'qualification', 'portfolio', 'contact'];
+    const sections = ['home', 'about', 'experience', 'expertise', 'qualification', 'projects', 'contact'];
     const sectionElements = [];
     
     sections.forEach(sectionId => {
@@ -106,7 +106,7 @@ const Nav = () => {
         <SlGraduation aria-hidden="true" />
       </a>
       <a
-        data-tooltip-content='Portfolio'
+        data-tooltip-content='projects'
         data-tooltip-id='portfolioBtn'
         href='#portfolio'
         aria-label='Navigate to Portfolio section'

@@ -182,19 +182,19 @@
 }
 
 /* Skill level indicators with colors */
-.experience__skill small:contains('Proficient') {
+.experience__level--proficient {
   background: rgba(84, 197, 113, 0.2);
   color: #54c571;
   border-color: #54c571;
 }
 
-.experience__skill small:contains('Intermediate') {
+.experience__level--intermediate {
   background: rgba(255, 193, 7, 0.2);
   color: #ffc107;
   border-color: #ffc107;
 }
 
-.experience__skill small:contains('Basic') {
+.experience__level--basic {
   background: rgba(108, 117, 125, 0.2);
   color: #6c757d;
   border-color: #6c757d;

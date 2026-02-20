@@ -77,10 +77,26 @@
 }
 
 /* ========== FORM ========== */
-form {
+.contact__container form {
   display: flex;
   flex-direction: column;
   gap: 1.2rem;
+}
+
+.contact__form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.contact__form-group label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--color-primary);
+}
+
+.main-content.bg-dark .contact__form-group label {
+  color: var(--color-white);
 }
 
 .submitted-hide {
@@ -91,8 +107,8 @@ form {
   display: inline-block !important;
 }
 
-input,
-textarea {
+.contact__container input,
+.contact__container textarea {
   width: 100%;
   padding: 1.5rem;
   border-radius: 0.5rem;
@@ -102,12 +118,12 @@ textarea {
   color: var(--color-primary);
 }
 
-textarea {
+.contact__container textarea {
   font-size: 13.3333px !important;
 }
 
-.main-content.bg-dark input,
-.main-content.bg-dark textarea {
+.main-content.bg-dark .contact__container input,
+.main-content.bg-dark .contact__container textarea {
   color: var(--color-white);
 }
 
@@ -155,6 +171,26 @@ textarea {
 
 .lds-ring div:nth-child(3) {
   animation-delay: -0.15s;
+}
+
+.error-message,
+.success-message {
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 15px;
+  font-size: 14px;
+}
+
+.error-message {
+  color: #e74c3c;
+  background-color: #fadbd8;
+  border: 1px solid #e74c3c;
+}
+
+.success-message {
+  color: #27ae60;
+  background-color: #d5f4e6;
+  border: 1px solid #27ae60;
 }
 
 @keyframes lds-ring {

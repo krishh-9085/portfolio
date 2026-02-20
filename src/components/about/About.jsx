@@ -63,8 +63,7 @@ const About = () => {
               />
               <img
                 src={MeJpg1000}
-                type='image/jpg'
-                alt='about'
+                alt='Krishna Rohilla portrait'
                 width='1000'
                 height='1000'
               />

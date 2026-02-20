@@ -26,12 +26,13 @@ const Experience = () => {
           <h3>Frontend Development</h3>
           <div className='experience__content'>
             {skills.frontend.map(({ id, skill, level }) => {
+              const levelClass = `experience__level--${String(level || '').toLowerCase()}`;
               return (
                 <article key={id} className='experience__details'>
                   <BsPatchCheckFill className='experience__details-icon' />
                   <div className='experience__skill'>
                     <h4>{skill}</h4>
-                    <small className='text-light'>{level}</small>
+                    <small className={`text-light experience__level ${levelClass}`}>{level}</small>
                   </div>
                 </article>
               );
@@ -43,12 +44,13 @@ const Experience = () => {
           <h3>Backend Development</h3>
           <div className='experience__content'>
             {skills.backend.map(({ id, skill, level }) => {
+              const levelClass = `experience__level--${String(level || '').toLowerCase()}`;
               return (
                 <article key={id} className='experience__details'>
                   <BsPatchCheckFill className='experience__details-icon' />
                   <div className='experience__skill'>
                     <h4>{skill}</h4>
-                    <small className='text-light'>{level}</small>
+                    <small className={`text-light experience__level ${levelClass}`}>{level}</small>
                   </div>
                 </article>
               );

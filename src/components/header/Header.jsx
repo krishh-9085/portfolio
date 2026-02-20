@@ -15,7 +15,7 @@ const Header = () => {
     <header id='home' role="banner">
       <div className='container header__container'>
         <h1 className='small-title'>Hello, I am</h1>
-        <a href='/' aria-label="Go to home page">
+        <a href='#home' aria-label="Go to home section">
           <h2 className='big-title'>Krishna Rohilla</h2>
         </a>
         <div className='typewriter' aria-live="polite" aria-label="Current role">
@@ -30,7 +30,6 @@ const Header = () => {
             <source srcSet={MEwebp} type='image/webp' />
             <img
               src={MEpng}
-              type='image/png'
               width='304'
               height='482'
               alt='Krishna Rohilla - Professional headshot'

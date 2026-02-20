@@ -52,14 +52,6 @@ const Nav = () => {
     };
   }, []);
   
-  const handleKeyDown = (e, href) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      setActiveNav(href);
-      document.querySelector(href)?.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
   return (
     <nav role="navigation" aria-label="Main navigation">
       <a
@@ -68,9 +60,7 @@ const Nav = () => {
         href='#home'
         aria-label='Navigate to Home section'
         onClick={() => setActiveNav('#home')}
-        onKeyDown={(e) => handleKeyDown(e, '#home')}
         className={activeNav === '#home' ? 'active' : ''}
-        tabIndex="0"
       >
         <AiOutlineHome aria-hidden="true" />
       </a>
@@ -80,9 +70,7 @@ const Nav = () => {
         href='#about'
         aria-label='Navigate to About section'
         onClick={() => setActiveNav('#about')}
-        onKeyDown={(e) => handleKeyDown(e, '#about')}
         className={activeNav === '#about' ? 'active' : ''}
-        tabIndex="0"
       >
         <AiOutlineUser aria-hidden="true" />
       </a>
@@ -92,9 +80,7 @@ const Nav = () => {
         href='#experience'
         aria-label='Navigate to Experience section'
         onClick={() => setActiveNav('#experience')}
-        onKeyDown={(e) => handleKeyDown(e, '#experience')}
         className={activeNav === '#experience' ? 'active' : ''}
-        tabIndex="0"
       >
         <BiBook aria-hidden="true" />
       </a>
@@ -104,9 +90,7 @@ const Nav = () => {
         href='#expertise'
         aria-label='Navigate to Expertise section'
         onClick={() => setActiveNav('#expertise')}
-        onKeyDown={(e) => handleKeyDown(e, '#expertise')}
         className={activeNav === '#expertise' ? 'active' : ''}
-        tabIndex="0"
       >
         <BiTask aria-hidden="true" />
       </a>
@@ -117,9 +101,7 @@ const Nav = () => {
         href='#qualification'
         aria-label='Navigate to Qualification section'
         onClick={() => setActiveNav('#qualification')}
-        onKeyDown={(e) => handleKeyDown(e, '#qualification')}
         className={activeNav === '#qualification' ? 'active' : ''}
-        tabIndex="0"
       >
         <SlGraduation aria-hidden="true" />
       </a>
@@ -129,9 +111,7 @@ const Nav = () => {
         href='#portfolio'
         aria-label='Navigate to Portfolio section'
         onClick={() => setActiveNav('#portfolio')}
-        onKeyDown={(e) => handleKeyDown(e, '#portfolio')}
         className={activeNav === '#portfolio' ? 'active' : ''}
-        tabIndex="0"
       >
         <RiServiceLine aria-hidden="true" />
       </a>
@@ -141,9 +121,7 @@ const Nav = () => {
         href='#contact'
         aria-label='Navigate to Contact section'
         onClick={() => setActiveNav('#contact')}
-        onKeyDown={(e) => handleKeyDown(e, '#contact')}
         className={activeNav === '#contact' ? 'active' : ''}
-        tabIndex="0"
       >
         <BsChatDots aria-hidden="true" />
       </a>

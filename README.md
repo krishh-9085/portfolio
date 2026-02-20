@@ -2,6 +2,12 @@
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
+## Environment Setup
+
+1. Copy `.env.example` to `.env`.
+2. Fill in your real values locally.
+3. Never commit `.env` to git.
+
 ## Cloudinary Image Upload (Admin)
 
 Admin project image uploads use Cloudinary. Add these variables in `.env`:

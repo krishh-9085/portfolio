@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
+import { Navigate, Route, Routes } from 'react-router-dom';
 import Header from './components/header/Header';
 import Nav from './components/nav/Nav';
 import About from './components/about/About';
@@ -10,39 +11,53 @@ import Contact from './components/contact/Contact';
 import Footer from './components/footer/Footer';
 import Switch from './components/switch/Switch';
 import ErrorBoundary from './components/ErrorBoundary';
-import AdminDashboard from './components/admin/AdminDashboard';
 import { SwitchContext } from './contexts/SwitchContext';
 import './app.css';
 
+const AdminDashboard = lazy(() => import('./components/admin/AdminDashboard'));
+
+const HomePage = ({ darkMode, setDarkMode, myStorage }) => (
+  <SwitchContext.Provider value={{ darkMode, setDarkMode, myStorage }}>
+    <div className={`main-content ${darkMode ? 'bg-dark' : 'bg-light'}`}>
+      <Header />
+      <Nav />
+      <About />
+      <Experience />
+      <Expertise />
+      <Qualification />
+      <Portfolio />
+      <Contact />
+      <Footer />
+      <Switch />
+    </div>
+  </SwitchContext.Provider>
+);
+
 const App = () => {
-  const myStorage = window.localStorage;
-  const isAdminRoute = window.location.pathname.toLowerCase().startsWith('/admin');
+  const myStorage = typeof window !== 'undefined' ? window.localStorage : null;
   const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
-    if (myStorage.getItem('darkMode') === 'true') setDarkMode(true);
-  }, [myStorage, setDarkMode]);
+    if (myStorage?.getItem('darkMode') === 'true') setDarkMode(true);
+  }, [myStorage]);
 
   return (
     <ErrorBoundary>
-      {isAdminRoute ? (
-        <AdminDashboard />
-      ) : (
-        <SwitchContext.Provider value={{ darkMode, setDarkMode, myStorage }}>
-          <div className={`main-content ${darkMode ? 'bg-dark' : 'bg-light'}`}>
-            <Header />
-            <Nav />
-            <About />
-            <Experience />
-            <Expertise />
-            <Qualification />
-            <Portfolio />
-            <Contact />
-            <Footer />
-            <Switch />
-          </div>
-        </SwitchContext.Provider>
-      )}
+      <Routes>
+        <Route
+          path='/'
+          element={<HomePage darkMode={darkMode} setDarkMode={setDarkMode} myStorage={myStorage} />}
+        />
+        <Route
+          path='/admin'
+          element={(
+            <Suspense fallback={<p className='container'>Loading admin dashboard...</p>}>
+              <AdminDashboard />
+            </Suspense>
+          )}
+        />
+        <Route path='*' element={<Navigate to='/' replace />} />
+      </Routes>
     </ErrorBoundary>
   );
 };

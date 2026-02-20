@@ -122,7 +122,6 @@ const Portfolio = () => {
                 <div className='portfolio__item-image'>
                   <img
                     src={image}
-                    type='image/jpg'
                     width='600'
                     height='420'
                     alt={title}
@@ -185,15 +184,23 @@ const Portfolio = () => {
                     >
                       Github
                     </a>
-                    <a
-                      href={demo}
-                      className='btn btn-white'
-                      target='_blank'
-                      rel='noreferrer'
-                      style={!demo ? { opacity: 0.5, pointerEvents: 'none' } : {}}
-                    >
-                      {demo ? 'Live Demo' : 'Coming Soon'}
-                    </a>
+                    {demo ? (
+                      <a
+                        href={demo}
+                        className='btn btn-white'
+                        target='_blank'
+                        rel='noreferrer'
+                      >
+                        Live Demo
+                      </a>
+                    ) : (
+                      <span
+                        className='btn btn-white btn-disabled'
+                        aria-disabled='true'
+                      >
+                        Coming Soon
+                      </span>
+                    )}
                   </div>
                 </div>
 

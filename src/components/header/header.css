@@ -4,7 +4,7 @@ header {
   overflow: hidden;
   max-height: 900px;
 }
-.big-title {
+header .big-title {
   font-size: 4rem;
   font-weight: 800;
   line-height: 1.1;
@@ -13,14 +13,22 @@ header {
   text-transform: uppercase;
   animation: slideInDown 1s ease-out 0.5s both; 
 }
-.small-title {
-  font-size: 25rem;
+
+.main-content:not(.bg-dark) header .big-title {
+  color: var(--color-primary);
+}
+header .small-title {
+  font-size: 1.25rem;
   font-weight: 800;
   line-height: 1.1;
   margin: 0;
   color: var(--color-light-variant);
   margin-bottom: 1rem;
   animation: slideInDown 1s ease-out 0.7s both; 
+}
+
+.main-content:not(.bg-dark) header .small-title {
+  color: var(--color-light);
 }
 
 .header__container {

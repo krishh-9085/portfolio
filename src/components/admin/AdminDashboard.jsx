@@ -3,44 +3,28 @@ import { addProject, removeProject, reorderProjects, subscribeToProjects, update
 import { subscribeToResume, updateResume } from '../../services/resumeService';
 import { addExperienceItem, removeExperienceItem, subscribeToExperience, updateExperienceItem } from '../../services/experienceService';
 import { addQualificationItem, removeQualificationItem, subscribeToQualification, updateQualificationItem } from '../../services/qualificationService';
-import { isCloudinaryConfigured, uploadImageToCloudinary } from '../../services/cloudinaryService';
-import { isSupabaseResumeConfigured, uploadResumeToSupabase } from '../../services/supabaseStorageService';
+import { uploadImageToCloudinary } from '../../services/cloudinaryService';
+import { uploadResumeToSupabase } from '../../services/supabaseStorageService';
 import { loginAdmin, logoutAdmin, subscribeToAdminAuth } from '../../services/adminAuthService';
+import {
+    CLOUDINARY_READY,
+    SUPABASE_RESUME_READY,
+    MAX_IMAGE_SIZE_MB,
+    MAX_IMAGE_BYTES,
+    MAX_RESUME_SIZE_MB,
+    MAX_RESUME_BYTES,
+    initialForm,
+    initialExperienceForm,
+    initialQualificationForm,
+    experienceLevelOptions
+} from './constants';
+import AdminHeader from './AdminHeader';
+import AdminLoginForm from './AdminLoginForm';
+import AdminStatusMessages from './AdminStatusMessages';
+import AdminResumePanel from './AdminResumePanel';
+import AdminExperiencePanel from './AdminExperiencePanel';
+import AdminQualificationPanel from './AdminQualificationPanel';
 import './admin.css';
-
-const initialForm = {
-    title: '',
-    image: '',
-    github: '',
-    demo: '',
-    tags: '',
-    desc: '',
-    isNew: false,
-    isFeatured: false,
-    isPopular: false
-};
-
-const initialExperienceForm = {
-    category: 'frontend',
-    skill: '',
-    level: 'Intermediate'
-};
-
-const initialQualificationForm = {
-    category: 'education',
-    title: '',
-    subtitle: '',
-    period: ''
-};
-
-const experienceLevelOptions = ['Basic', 'Intermediate', 'Proficient'];
-
-const MAX_IMAGE_SIZE_MB = 1.5;
-const MAX_IMAGE_BYTES = Math.floor(MAX_IMAGE_SIZE_MB * 1024 * 1024);
-const MAX_RESUME_SIZE_MB = 5;
-const MAX_RESUME_BYTES = Math.floor(MAX_RESUME_SIZE_MB * 1024 * 1024);
-const CLOUDINARY_READY = isCloudinaryConfigured();
-const SUPABASE_RESUME_READY = isSupabaseResumeConfigured();
 
 const AdminDashboard = () => {
     const [projects, setProjects] = useState([]);
@@ -647,33 +631,6 @@ const AdminDashboard = () => {
         setCredentials((prev) => ({ ...prev, password: '' }));
     };
 
-    const renderLoginForm = () => (
-        <form className='admin-form admin-login-form' onSubmit={handleLogin}>
-            <h2 className='admin-title'>Admin Login</h2>
-            {!authState.isConfigured && (
-                <p className='admin-info'>Set `REACT_APP_ADMIN_EMAIL` and `REACT_APP_ADMIN_PASSWORD_HASH` (SHA-256 hash or plain password) to enable login.</p>
-            )}
-            <input
-                type='email'
-                placeholder='Admin email'
-                value={credentials.email}
-                onChange={(event) => setCredentials((prev) => ({ ...prev, email: event.target.value }))}
-                required
-            />
-            <input
-                type='password'
-                placeholder='Password'
-                value={credentials.password}
-                onChange={(event) => setCredentials((prev) => ({ ...prev, password: event.target.value }))}
-                required
-            />
-
-            <button className='admin-btn admin-btn-primary' type='submit' disabled={isSubmitting || !authState.isConfigured}>
-                {isSubmitting ? 'Signing in...' : 'Login'}
-            </button>
-        </form>
-    );
-
     const renderAdminContent = () => (
         <div className='admin-layout-sections'>
             <div className='admin-content-grid'>
@@ -808,325 +765,75 @@ const AdminDashboard = () => {
                 </section>
             </div>
 
-            <section className='admin-resume-panel'>
-                <h2 className='admin-title'>Resume</h2>
-                <p className='admin-info'>Drag and drop a PDF resume. It updates the `Download CV` button in real time.</p>
-                {resume?.url && (
-                    <a href={resume.url} target='_blank' rel='noreferrer' className='admin-resume-link'>
-                        Current: {resume.fileName || 'Resume.pdf'}
-                    </a>
-                )}
+            <AdminResumePanel
+                resume={resume}
+                isResumeDragOver={isResumeDragOver}
+                isUploadingResume={isUploadingResume}
+                onDragOver={handleResumeDragOver}
+                onDragLeave={handleResumeDragLeave}
+                onDrop={handleResumeDrop}
+                onInputChange={handleResumeInputChange}
+                supabaseReady={SUPABASE_RESUME_READY}
+                maxResumeSizeMb={MAX_RESUME_SIZE_MB}
+            />
 
-                <div
-                    className={`admin-resume-dropzone ${isResumeDragOver ? 'is-active' : ''} ${isUploadingResume ? 'is-uploading' : ''}`}
-                    onDragOver={handleResumeDragOver}
-                    onDragLeave={handleResumeDragLeave}
-                    onDrop={handleResumeDrop}
-                >
-                    <p>{isUploadingResume ? 'Uploading resume to Supabase...' : 'Drop PDF here'}</p>
-                    <span>or</span>
-                    <label className={`admin-upload-btn ${!SUPABASE_RESUME_READY || isUploadingResume ? 'is-disabled' : ''}`}>
-                        <input
-                            type='file'
-                            accept='application/pdf'
-                            disabled={!SUPABASE_RESUME_READY || isUploadingResume}
-                            onChange={handleResumeInputChange}
-                        />
-                        {isUploadingResume ? 'Uploading...' : 'Choose PDF'}
-                    </label>
-                    <small>
-                        {SUPABASE_RESUME_READY
-                            ? `Only PDF up to ${MAX_RESUME_SIZE_MB}MB.`
-                            : 'Set REACT_APP_SUPABASE_URL, REACT_APP_SUPABASE_ANON_KEY and REACT_APP_SUPABASE_RESUME_BUCKET to enable resume uploads.'}
-                    </small>
-                </div>
-            </section>
+            <AdminExperiencePanel
+                experienceForm={experienceForm}
+                setExperienceForm={setExperienceForm}
+                experienceLevelOptions={experienceLevelOptions}
+                isExperienceSubmitting={isExperienceSubmitting}
+                onAddExperience={handleAddExperience}
+                isExperienceLoading={isExperienceLoading}
+                experience={experience}
+                editingExperienceId={editingExperienceId}
+                experienceEditForm={experienceEditForm}
+                setExperienceEditForm={setExperienceEditForm}
+                onSaveExperience={handleSaveExperience}
+                isSavingExperienceId={isSavingExperienceId}
+                onCancelEditingExperience={cancelEditingExperience}
+                onStartEditingExperience={startEditingExperience}
+                isDeletingExperienceId={isDeletingExperienceId}
+                onDeleteExperience={handleDeleteExperience}
+            />
 
-            <section className='admin-experience-panel'>
-                <h2 className='admin-title'>Experience Skills</h2>
-                <p className='admin-info'>Add, edit, or remove skills. Changes reflect instantly in the Experience section.</p>
-
-                <form className='admin-form admin-experience-form' onSubmit={handleAddExperience}>
-                    <div className='admin-experience-form-row'>
-                        <select
-                            value={experienceForm.category}
-                            onChange={(event) => setExperienceForm((prev) => ({ ...prev, category: event.target.value }))}
-                        >
-                            <option value='frontend'>Frontend</option>
-                            <option value='backend'>Backend</option>
-                        </select>
-                        <input
-                            type='text'
-                            placeholder='Skill name'
-                            value={experienceForm.skill}
-                            onChange={(event) => setExperienceForm((prev) => ({ ...prev, skill: event.target.value }))}
-                        />
-                        <select
-                            value={experienceForm.level}
-                            onChange={(event) => setExperienceForm((prev) => ({ ...prev, level: event.target.value }))}
-                        >
-                            {experienceLevelOptions.map((level) => (
-                                <option key={level} value={level}>{level}</option>
-                            ))}
-                        </select>
-                    </div>
-                    <button className='admin-btn admin-btn-primary' type='submit' disabled={isExperienceSubmitting}>
-                        {isExperienceSubmitting ? 'Adding...' : 'Add Skill'}
-                    </button>
-                </form>
-
-                {isExperienceLoading ? (
-                    <p className='admin-info'>Loading experience skills...</p>
-                ) : (
-                    <div className='admin-experience-columns'>
-                        {[
-                            { key: 'frontend', label: 'Frontend' },
-                            { key: 'backend', label: 'Backend' }
-                        ].map(({ key, label }) => (
-                            <div key={key} className='admin-experience-column'>
-                                <h3>{label} ({experience[key].length})</h3>
-                                {experience[key].length === 0 ? (
-                                    <p className='admin-info'>No skills in this category.</p>
-                                ) : (
-                                    <ul className='admin-experience-list'>
-                                        {experience[key].map((item) => (
-                                            <li key={item.id} className='admin-experience-item'>
-                                                {editingExperienceId === item.id ? (
-                                                    <div className='admin-experience-edit'>
-                                                        <div className='admin-experience-form-row'>
-                                                            <select
-                                                                value={experienceEditForm.category}
-                                                                onChange={(event) => setExperienceEditForm((prev) => ({ ...prev, category: event.target.value }))}
-                                                            >
-                                                                <option value='frontend'>Frontend</option>
-                                                                <option value='backend'>Backend</option>
-                                                            </select>
-                                                            <input
-                                                                type='text'
-                                                                value={experienceEditForm.skill}
-                                                                onChange={(event) => setExperienceEditForm((prev) => ({ ...prev, skill: event.target.value }))}
-                                                            />
-                                                            <select
-                                                                value={experienceEditForm.level}
-                                                                onChange={(event) => setExperienceEditForm((prev) => ({ ...prev, level: event.target.value }))}
-                                                            >
-                                                                {experienceLevelOptions.map((level) => (
-                                                                    <option key={level} value={level}>{level}</option>
-                                                                ))}
-                                                            </select>
-                                                        </div>
-                                                        <div className='admin-project-actions'>
-                                                            <button
-                                                                type='button'
-                                                                className='admin-btn admin-btn-primary'
-                                                                onClick={() => handleSaveExperience(item.id)}
-                                                                disabled={isSavingExperienceId === item.id}
-                                                            >
-                                                                {isSavingExperienceId === item.id ? 'Saving...' : 'Save'}
-                                                            </button>
-                                                            <button
-                                                                type='button'
-                                                                className='admin-btn admin-btn-secondary'
-                                                                onClick={cancelEditingExperience}
-                                                                disabled={isSavingExperienceId === item.id}
-                                                            >
-                                                                Cancel
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                ) : (
-                                                    <>
-                                                        <div className='admin-experience-meta'>
-                                                            <h4>{item.skill}</h4>
-                                                            <p>{item.level}</p>
-                                                        </div>
-                                                        <div className='admin-project-actions'>
-                                                            <button
-                                                                type='button'
-                                                                className='admin-btn admin-btn-secondary'
-                                                                onClick={() => startEditingExperience(item, key)}
-                                                                disabled={isDeletingExperienceId === item.id}
-                                                            >
-                                                                Edit
-                                                            </button>
-                                                            <button
-                                                                type='button'
-                                                                className='admin-btn admin-btn-danger'
-                                                                onClick={() => handleDeleteExperience(item.id)}
-                                                                disabled={isDeletingExperienceId === item.id}
-                                                            >
-                                                                {isDeletingExperienceId === item.id ? 'Removing...' : 'Remove'}
-                                                            </button>
-                                                        </div>
-                                                    </>
-                                                )}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                )}
-                            </div>
-                        ))}
-                    </div>
-                )}
-            </section>
-
-            <section className='admin-qualification-panel'>
-                <h2 className='admin-title'>Qualification Timeline</h2>
-                <p className='admin-info'>Manage education and experience timeline entries shown in the Qualification section.</p>
-
-                <form className='admin-form admin-qualification-form' onSubmit={handleAddQualification}>
-                    <div className='admin-qualification-form-row'>
-                        <select
-                            value={qualificationForm.category}
-                            onChange={(event) => setQualificationForm((prev) => ({ ...prev, category: event.target.value }))}
-                        >
-                            <option value='education'>Education</option>
-                            <option value='experience'>Experience</option>
-                        </select>
-                        <input
-                            type='text'
-                            placeholder='Title'
-                            value={qualificationForm.title}
-                            onChange={(event) => setQualificationForm((prev) => ({ ...prev, title: event.target.value }))}
-                        />
-                        <input
-                            type='text'
-                            placeholder='Subtitle'
-                            value={qualificationForm.subtitle}
-                            onChange={(event) => setQualificationForm((prev) => ({ ...prev, subtitle: event.target.value }))}
-                        />
-                        <input
-                            type='text'
-                            placeholder='Period (e.g. 2022 - 2026)'
-                            value={qualificationForm.period}
-                            onChange={(event) => setQualificationForm((prev) => ({ ...prev, period: event.target.value }))}
-                        />
-                    </div>
-                    <button className='admin-btn admin-btn-primary' type='submit' disabled={isQualificationSubmitting}>
-                        {isQualificationSubmitting ? 'Adding...' : 'Add Entry'}
-                    </button>
-                </form>
-
-                {isQualificationLoading ? (
-                    <p className='admin-info'>Loading qualification entries...</p>
-                ) : (
-                    <div className='admin-qualification-columns'>
-                        {[
-                            { key: 'education', label: 'Education' },
-                            { key: 'experience', label: 'Experience' }
-                        ].map(({ key, label }) => (
-                            <div key={key} className='admin-qualification-column'>
-                                <h3>{label} ({qualification[key].length})</h3>
-                                {qualification[key].length === 0 ? (
-                                    <p className='admin-info'>No entries in this category.</p>
-                                ) : (
-                                    <ul className='admin-qualification-list'>
-                                        {qualification[key].map((item) => (
-                                            <li key={item.id} className='admin-qualification-item'>
-                                                {editingQualificationId === item.id ? (
-                                                    <div className='admin-qualification-edit'>
-                                                        <div className='admin-qualification-form-row'>
-                                                            <select
-                                                                value={qualificationEditForm.category}
-                                                                onChange={(event) => setQualificationEditForm((prev) => ({ ...prev, category: event.target.value }))}
-                                                            >
-                                                                <option value='education'>Education</option>
-                                                                <option value='experience'>Experience</option>
-                                                            </select>
-                                                            <input
-                                                                type='text'
-                                                                value={qualificationEditForm.title}
-                                                                onChange={(event) => setQualificationEditForm((prev) => ({ ...prev, title: event.target.value }))}
-                                                            />
-                                                            <input
-                                                                type='text'
-                                                                value={qualificationEditForm.subtitle}
-                                                                onChange={(event) => setQualificationEditForm((prev) => ({ ...prev, subtitle: event.target.value }))}
-                                                            />
-                                                            <input
-                                                                type='text'
-                                                                value={qualificationEditForm.period}
-                                                                onChange={(event) => setQualificationEditForm((prev) => ({ ...prev, period: event.target.value }))}
-                                                            />
-                                                        </div>
-                                                        <div className='admin-project-actions'>
-                                                            <button
-                                                                type='button'
-                                                                className='admin-btn admin-btn-primary'
-                                                                onClick={() => handleSaveQualification(item.id)}
-                                                                disabled={isSavingQualificationId === item.id}
-                                                            >
-                                                                {isSavingQualificationId === item.id ? 'Saving...' : 'Save'}
-                                                            </button>
-                                                            <button
-                                                                type='button'
-                                                                className='admin-btn admin-btn-secondary'
-                                                                onClick={cancelEditingQualification}
-                                                                disabled={isSavingQualificationId === item.id}
-                                                            >
-                                                                Cancel
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                ) : (
-                                                    <>
-                                                        <div className='admin-qualification-meta'>
-                                                            <h4>{item.title}</h4>
-                                                            <p>{item.subtitle}</p>
-                                                            <small>{item.period}</small>
-                                                        </div>
-                                                        <div className='admin-project-actions'>
-                                                            <button
-                                                                type='button'
-                                                                className='admin-btn admin-btn-secondary'
-                                                                onClick={() => startEditingQualification(item, key)}
-                                                                disabled={isDeletingQualificationId === item.id}
-                                                            >
-                                                                Edit
-                                                            </button>
-                                                            <button
-                                                                type='button'
-                                                                className='admin-btn admin-btn-danger'
-                                                                onClick={() => handleDeleteQualification(item.id)}
-                                                                disabled={isDeletingQualificationId === item.id}
-                                                            >
-                                                                {isDeletingQualificationId === item.id ? 'Removing...' : 'Remove'}
-                                                            </button>
-                                                        </div>
-                                                    </>
-                                                )}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                )}
-                            </div>
-                        ))}
-                    </div>
-                )}
-            </section>
+            <AdminQualificationPanel
+                qualificationForm={qualificationForm}
+                setQualificationForm={setQualificationForm}
+                isQualificationSubmitting={isQualificationSubmitting}
+                onAddQualification={handleAddQualification}
+                isQualificationLoading={isQualificationLoading}
+                qualification={qualification}
+                editingQualificationId={editingQualificationId}
+                qualificationEditForm={qualificationEditForm}
+                setQualificationEditForm={setQualificationEditForm}
+                onSaveQualification={handleSaveQualification}
+                isSavingQualificationId={isSavingQualificationId}
+                onCancelEditingQualification={cancelEditingQualification}
+                onStartEditingQualification={startEditingQualification}
+                isDeletingQualificationId={isDeletingQualificationId}
+                onDeleteQualification={handleDeleteQualification}
+            />
         </div>
     );
 
     return (
         <main className='admin-page'>
             <section className='container admin-shell'>
-                <div className='admin-header'>
-                    <h1 className='admin-page-title'>Admin Dashboard</h1>
-                    {authState.isAuthenticated ? (
-                        <button type='button' className='admin-btn admin-btn-secondary' onClick={handleLogout}>
-                            Logout ({authState.email})
-                        </button>
-                    ) : (
-                        <p className='admin-info'>Protected admin panel</p>
-                    )}
-                </div>
+                <AdminHeader authState={authState} onLogout={handleLogout} />
 
                 {isAuthLoading
                     ? <p className='admin-info'>Loading auth...</p>
-                    : (authState.isAuthenticated ? renderAdminContent() : renderLoginForm())}
+                    : (authState.isAuthenticated ? renderAdminContent() : (
+                        <AdminLoginForm
+                            authState={authState}
+                            credentials={credentials}
+                            setCredentials={setCredentials}
+                            isSubmitting={isSubmitting}
+                            onSubmit={handleLogin}
+                        />
+                    ))}
 
-                {error && <p className='admin-error'>{error}</p>}
-                {status && <p className='admin-status'>{status}</p>}
+                <AdminStatusMessages error={error} status={status} />
             </section>
         </main>
     );

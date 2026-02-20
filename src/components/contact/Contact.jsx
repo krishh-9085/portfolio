@@ -55,7 +55,7 @@ const Contact = () => {
             <MdOutlineEmail className='contact__option-icon' />
             <h3>Email</h3>
             <h4>Rohillakrish2@gmail.com</h4>
-            <a href='mailto:Rohillakrish2@gmail.com' target='_blank' rel='noreferrer'>
+            <a href='mailto:Rohillakrish2@gmail.com'>
               Email me
             </a>
           </article>
@@ -72,25 +72,37 @@ const Contact = () => {
 
         </div>
 
-        <form ref={form} onSubmit={sendEmail}>
-          <input
-            type='text'
-            name='from_name'
-            placeholder='Your Full Name'
-            required
-          />
-          <input
-            type='email'
-            name='reply_to'
-            placeholder='Your Email'
-            required
-          />
-          <textarea
-            name='message'
-            rows='7'
-            placeholder='Your Message'
-            required
-          ></textarea>
+        <form ref={form} onSubmit={sendEmail} aria-describedby='contact-form-status'>
+          <div className='contact__form-group'>
+            <label htmlFor='contact-name'>Full Name</label>
+            <input
+              id='contact-name'
+              type='text'
+              name='from_name'
+              placeholder='Your Full Name'
+              required
+            />
+          </div>
+          <div className='contact__form-group'>
+            <label htmlFor='contact-email'>Email</label>
+            <input
+              id='contact-email'
+              type='email'
+              name='reply_to'
+              placeholder='Your Email'
+              required
+            />
+          </div>
+          <div className='contact__form-group'>
+            <label htmlFor='contact-message'>Message</label>
+            <textarea
+              id='contact-message'
+              name='message'
+              rows='7'
+              placeholder='Your Message'
+              required
+            ></textarea>
+          </div>
           {/* Hidden field for current date */}
           <input
             type='hidden'
@@ -100,30 +112,14 @@ const Contact = () => {
 
           {/* Error Message */}
           {error && (
-            <div className='error-message' style={{
-              color: '#e74c3c',
-              backgroundColor: '#fadbd8',
-              padding: '12px',
-              borderRadius: '6px',
-              marginBottom: '15px',
-              border: '1px solid #e74c3c',
-              fontSize: '14px'
-            }}>
+            <div id='contact-form-status' role='alert' aria-live='assertive' className='error-message'>
               ⚠️ {error}
             </div>
           )}
 
           {/* Success Message */}
           {messageSubmitted && !messageSubmitting && (
-            <div className='success-message' style={{
-              color: '#27ae60',
-              backgroundColor: '#d5f4e6',
-              padding: '12px',
-              borderRadius: '6px',
-              marginBottom: '15px',
-              border: '1px solid #27ae60',
-              fontSize: '14px'
-            }}>
+            <div id='contact-form-status' role='status' aria-live='polite' className='success-message'>
               ✅ Message sent successfully! I&apos;ll get back to you soon.
             </div>
           )}

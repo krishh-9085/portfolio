@@ -1,5 +1,6 @@
 import { Component } from 'react';
 import PropTypes from 'prop-types';
+import './error-boundary.css';
 
 class ErrorBoundary extends Component {
   constructor(props) {
@@ -24,34 +25,19 @@ class ErrorBoundary extends Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="error-boundary" style={{
-          padding: '2rem',
-          textAlign: 'center',
-          background: 'var(--color-bg-variant)',
-          borderRadius: '1rem',
-          margin: '2rem',
-          color: 'var(--color-white)'
-        }}>
+        <div className="error-boundary">
           <h2>Oops! Something went wrong</h2>
           <p>We&apos;re sorry for the inconvenience. Please try refreshing the page.</p>
           <button
             onClick={() => window.location.reload()}
-            style={{
-              padding: '0.75rem 1.5rem',
-              background: 'var(--color-primary)',
-              color: 'var(--color-white)',
-              border: 'none',
-              borderRadius: '0.5rem',
-              cursor: 'pointer',
-              marginTop: '1rem'
-            }}
+            className='error-boundary__btn'
           >
             Refresh Page
           </button>
           {process.env.NODE_ENV === 'development' && (
-            <details style={{ marginTop: '1rem', textAlign: 'left' }}>
+            <details className='error-boundary__details'>
               <summary>Error Details (Development Only)</summary>
-              <pre style={{ fontSize: '0.8rem', overflow: 'auto' }}>
+              <pre className='error-boundary__pre'>
                 {this.state.error && this.state.error.toString()}
                 <br />
                 {this.state.errorInfo && this.state.errorInfo.componentStack}

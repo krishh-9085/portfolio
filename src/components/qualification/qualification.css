@@ -64,20 +64,23 @@
 .qualification__button {
   display: flex;
   align-items: center;
+  gap: 0.7rem;
   font-size: 1rem;
   font-weight: 500;
   color: var(--color-light-variant);
   cursor: pointer;
-  margin-bottom: -5px;
-  padding: 0.5rem 8rem;
+  margin-bottom: 0;
+  padding: 0.65rem 1.5rem;
   border-radius: 2rem;
   border: 1px solid transparent;
   position: relative;
   overflow: hidden;
   transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   background: transparent;
-  min-width: 140px;
+  min-width: 49%;
   justify-content: center;
+  line-height: 1.1;
+  white-space: nowrap;
 }
 
 .qualification__button::before {
@@ -106,7 +109,7 @@
   color: var(--color-white);
   background: var(--color-primary);
   border: 1px solid var(--color-primary);
-  transform: translateY(-2px);
+  transform: translateY(0px);
   box-shadow: 0 10px 30px rgba(68, 68, 68, 0.3);
 }
 
@@ -138,8 +141,13 @@
 
 /* ========== QUALIFICATION ICON ========== */
 .qualification__icon {
-  font-size: 1.3rem;
-  margin-right: 0.8rem;
+  font-size: 1.15rem;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: inherit;
+  line-height: 1;
   transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 

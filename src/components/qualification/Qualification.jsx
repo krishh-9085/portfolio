@@ -71,8 +71,13 @@ const Qualification = () => {
       <h2 className='medium-title'>Qualification</h2>
 
       <div className='container qualification__container'>
-        <div className='qualification__tabs'>
-          <div
+        <div className='qualification__tabs' role='tablist' aria-label='Qualification categories'>
+          <button
+            type='button'
+            id='qualification-tab-education'
+            role='tab'
+            aria-selected={toggleState === 1}
+            aria-controls='qualification-panel-education'
             className={
               toggleState === 1
                 ? 'qualification__button qualification__active button--flex'
@@ -81,9 +86,14 @@ const Qualification = () => {
             onClick={() => toggleTab(1)}
           >
             <FaUserGraduate className='qualification__icon' /> Education
-          </div>
+          </button>
 
-          <div
+          <button
+            type='button'
+            id='qualification-tab-experience'
+            role='tab'
+            aria-selected={toggleState === 2}
+            aria-controls='qualification-panel-experience'
             className={
               toggleState === 2
                 ? 'qualification__button qualification__active button--flex'
@@ -93,11 +103,14 @@ const Qualification = () => {
           >
             <FaBriefcase className='qualification__icon' />
             Experience
-          </div>
+          </button>
         </div>
 
         <div className='qualification__sections'>
           <div
+            id='qualification-panel-education'
+            role='tabpanel'
+            aria-labelledby='qualification-tab-education'
             className={
               toggleState === 1
                 ? 'qualification__content qualification__content-active'
@@ -108,6 +121,9 @@ const Qualification = () => {
           </div>
 
           <div
+            id='qualification-panel-experience'
+            role='tabpanel'
+            aria-labelledby='qualification-tab-experience'
             className={
               toggleState === 2
                 ? 'qualification__content qualification__content-active'

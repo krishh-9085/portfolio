@@ -178,7 +178,7 @@ const Portfolio = () => {
                   <div className='portfolio__item-cta'>
                     <a
                       href={github}
-                      className='btn btn-variant  '
+                      className='btn btn-variant'
                       target='_blank'
                       rel='noreferrer'
                     >
@@ -206,8 +206,8 @@ const Portfolio = () => {
 
                 {/* Special badges */}
                 {isNew && <div className='portfolio__badge portfolio__badge--new'>NEW</div>}
-                {isFeatured && <div className='portfolio__badge portfolio__badge--featured'>⭐ FEATURED</div>}
-                {isPopular && <div className='portfolio__badge portfolio__badge--popular'>🔥 POPULAR</div>}
+                {isFeatured && <div className='portfolio__badge portfolio__badge--featured'>Featured</div>}
+                {isPopular && <div className='portfolio__badge portfolio__badge--popular'>Popular</div>}
               </article>
             );
           })}
@@ -244,3 +244,4 @@ const Portfolio = () => {
 };
 
 export default Portfolio;
+

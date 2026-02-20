@@ -443,3 +443,93 @@
 .about__card:hover {
   will-change: auto;
 }
+
+/* ========== PREMIUM SIMPLIFICATION PASS ========== */
+.about__container {
+  grid-template-columns: minmax(240px, 0.8fr) minmax(0, 1fr);
+  gap: clamp(2rem, 4vw, 4rem);
+  align-items: center;
+}
+
+.about__me {
+  border-radius: 1.5rem;
+  backdrop-filter: none;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.16);
+  animation: none;
+}
+
+.main-content:not(.bg-dark) .about__me {
+  border-color: rgba(0, 0, 0, 0.12);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.12);
+}
+
+.about__me::before {
+  opacity: 0.42;
+}
+
+.about__me:hover {
+  transform: translateY(-3px);
+}
+
+.about__me-image {
+  transform: none;
+  border-radius: 1.2rem;
+  box-shadow: none;
+}
+
+.about__me-image:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.about__cards {
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  animation: none;
+}
+
+.about__card {
+  padding: 1.25rem 1rem;
+  border-radius: 1rem;
+  backdrop-filter: none;
+  box-shadow: none;
+  animation: none;
+}
+
+.main-content:not(.bg-dark) .about__card {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.about__card::before {
+  display: none;
+}
+
+.about__card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 22px rgba(0, 0, 0, 0.12);
+}
+
+.about__content p {
+  margin: 1.4rem 0 2rem;
+  max-width: 62ch;
+  font-size: var(--font-step-0);
+  line-height: 1.75;
+  animation: none;
+}
+
+.about__content p::before {
+  display: none;
+}
+
+@media screen and (max-width: 1024px) {
+  .about__container {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .about__me {
+    width: min(360px, 68%);
+    margin: 1rem auto 1.5rem;
+  }
+}

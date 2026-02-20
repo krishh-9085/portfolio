@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { addProject, removeProject, reorderProjects, subscribeToProjects, updateProject } from '../../services/projectsService';
 import { subscribeToResume, updateResume } from '../../services/resumeService';
-import { addExperienceItem, removeExperienceItem, subscribeToExperience, updateExperienceItem } from '../../services/experienceService';
+import { addExperienceItem, removeExperienceItem, reorderExperienceItems, subscribeToExperience, updateExperienceItem } from '../../services/experienceService';
 import { addQualificationItem, removeQualificationItem, subscribeToQualification, updateQualificationItem } from '../../services/qualificationService';
 import { uploadImageToCloudinary } from '../../services/cloudinaryService';
 import { uploadResumeToSupabase } from '../../services/supabaseStorageService';
@@ -24,6 +24,7 @@ import AdminStatusMessages from './AdminStatusMessages';
 import AdminResumePanel from './AdminResumePanel';
 import AdminExperiencePanel from './AdminExperiencePanel';
 import AdminQualificationPanel from './AdminQualificationPanel';
+import AdminProjectsPanel from './AdminProjectsPanel';
 import './admin.css';
 
 const AdminDashboard = () => {
@@ -47,6 +48,8 @@ const AdminDashboard = () => {
     const [isDeletingExperienceId, setIsDeletingExperienceId] = useState('');
     const [isSavingExperienceId, setIsSavingExperienceId] = useState('');
     const [editingExperienceId, setEditingExperienceId] = useState('');
+    const [draggingExperienceId, setDraggingExperienceId] = useState('');
+    const [dropTargetExperienceId, setDropTargetExperienceId] = useState('');
     const [isQualificationLoading, setIsQualificationLoading] = useState(true);
     const [isQualificationSubmitting, setIsQualificationSubmitting] = useState(false);
     const [isDeletingQualificationId, setIsDeletingQualificationId] = useState('');
@@ -488,6 +491,91 @@ const AdminDashboard = () => {
         }
     };
 
+    const findExperienceCategoryById = (itemId) => {
+        const targetId = String(itemId);
+        if (experience.frontend.some((item) => item.id === targetId)) {
+            return 'frontend';
+        }
+        if (experience.backend.some((item) => item.id === targetId)) {
+            return 'backend';
+        }
+        return '';
+    };
+
+    const handleExperienceDragStart = (itemId, category, event) => {
+        if (editingExperienceId) {
+            return;
+        }
+
+        const payload = JSON.stringify({ id: itemId, category });
+        setDraggingExperienceId(itemId);
+        event.dataTransfer.effectAllowed = 'move';
+        event.dataTransfer.setData('text/plain', payload);
+    };
+
+    const handleExperienceDragOver = (itemId, event) => {
+        if (editingExperienceId) {
+            return;
+        }
+
+        event.preventDefault();
+        event.dataTransfer.dropEffect = 'move';
+        if (dropTargetExperienceId !== itemId) {
+            setDropTargetExperienceId(itemId);
+        }
+    };
+
+    const handleExperienceDrop = async (targetItemId, targetCategory, event) => {
+        if (editingExperienceId) {
+            return;
+        }
+
+        event.preventDefault();
+        setDropTargetExperienceId('');
+
+        let sourceItemId = draggingExperienceId;
+        let sourceCategory = findExperienceCategoryById(draggingExperienceId);
+        const rawPayload = event.dataTransfer.getData('text/plain');
+
+        if (rawPayload) {
+            try {
+                const parsed = JSON.parse(rawPayload);
+                sourceItemId = String(parsed?.id || sourceItemId);
+                sourceCategory = String(parsed?.category || sourceCategory);
+            } catch {
+                sourceItemId = rawPayload || sourceItemId;
+            }
+        }
+
+        if (!sourceItemId || sourceItemId === targetItemId) {
+            setDraggingExperienceId('');
+            return;
+        }
+
+        if (sourceCategory !== targetCategory) {
+            setError('Drag to reorder works within the same category column.');
+            setDraggingExperienceId('');
+            return;
+        }
+
+        setError('');
+        setStatus('');
+
+        try {
+            await reorderExperienceItems(targetCategory, sourceItemId, targetItemId);
+            setStatus('Experience order updated.');
+        } catch (reorderError) {
+            setError(reorderError?.message || 'Could not reorder experience right now.');
+        } finally {
+            setDraggingExperienceId('');
+        }
+    };
+
+    const handleExperienceDragEnd = () => {
+        setDraggingExperienceId('');
+        setDropTargetExperienceId('');
+    };
+
     const handleAddQualification = async (event) => {
         event.preventDefault();
         setError('');
@@ -567,43 +655,6 @@ const AdminDashboard = () => {
         }
     };
 
-    const renderImageField = (mode, value, setValue, isUploading) => (
-        <div className='admin-image-field'>
-            <input
-                type='url'
-                placeholder='Image URL'
-                value={value}
-                onChange={(event) => setValue(event.target.value)}
-            />
-            <div className='admin-upload-row'>
-                <label className={`admin-upload-btn ${!CLOUDINARY_READY ? 'is-disabled' : ''}`}>
-                    <input
-                        type='file'
-                        accept='image/png,image/jpeg,image/webp,image/gif'
-                        disabled={!CLOUDINARY_READY || isUploading}
-                        onChange={(event) => handleImageUpload(event, mode)}
-                    />
-                    {isUploading ? 'Uploading...' : 'Upload Image'}
-                </label>
-                {value && (
-                    <button type='button' className='admin-btn admin-btn-secondary' onClick={() => setValue('')}>
-                        Clear Image
-                    </button>
-                )}
-                <span className='admin-upload-note'>
-                    {CLOUDINARY_READY
-                        ? 'PNG/JPG/WebP/GIF up to 1.5MB.'
-                        : 'Set REACT_APP_CLOUDINARY_CLOUD_NAME and REACT_APP_CLOUDINARY_UPLOAD_PRESET to enable uploads.'}
-                </span>
-            </div>
-            {value && (
-                <div className='admin-image-preview'>
-                    <img src={value} alt='Project preview' loading='lazy' />
-                </div>
-            )}
-        </div>
-    );
-
     const handleLogin = async (event) => {
         event.preventDefault();
         setError('');
@@ -633,137 +684,33 @@ const AdminDashboard = () => {
 
     const renderAdminContent = () => (
         <div className='admin-layout-sections'>
-            <div className='admin-content-grid'>
-                <form className='admin-form' onSubmit={handleAddProject}>
-                    <h2 className='admin-title'>Add Project</h2>
-                    <input type='text' placeholder='Project title' value={form.title} onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))} />
-                    {renderImageField('create', form.image, (image) => setForm((prev) => ({ ...prev, image })), isUploadingCreateImage)}
-                    <input type='url' placeholder='GitHub URL' value={form.github} onChange={(event) => setForm((prev) => ({ ...prev, github: event.target.value }))} />
-                    <input type='url' placeholder='Live demo URL (optional)' value={form.demo} onChange={(event) => setForm((prev) => ({ ...prev, demo: event.target.value }))} />
-                    <input type='text' placeholder='Tags (comma separated)' value={form.tags} onChange={(event) => setForm((prev) => ({ ...prev, tags: event.target.value }))} />
-                    <textarea placeholder='Short description' value={form.desc} onChange={(event) => setForm((prev) => ({ ...prev, desc: event.target.value }))} />
-
-                    <div className='admin-checkboxes'>
-                        <label><input type='checkbox' checked={form.isNew} onChange={(event) => setForm((prev) => ({ ...prev, isNew: event.target.checked }))} /> New</label>
-                        <label><input type='checkbox' checked={form.isFeatured} onChange={(event) => setForm((prev) => ({ ...prev, isFeatured: event.target.checked }))} /> Featured</label>
-                        <label><input type='checkbox' checked={form.isPopular} onChange={(event) => setForm((prev) => ({ ...prev, isPopular: event.target.checked }))} /> Popular</label>
-                    </div>
-
-                    <button className='admin-btn admin-btn-primary' type='submit' disabled={isSubmitting || isUploadingCreateImage}>
-                        {isSubmitting ? 'Adding...' : isUploadingCreateImage ? 'Uploading Image...' : 'Add Project'}
-                    </button>
-                </form>
-
-                <section className='admin-projects'>
-                    <h2 className='admin-title'>Projects ({projects.length})</h2>
-                    <p className='admin-info'>Drag and drop projects to reorder how they appear in the portfolio.</p>
-                    {isLoadingProjects ? (
-                        <p className='admin-info'>Loading projects...</p>
-                    ) : projects.length === 0 ? (
-                        <p className='admin-info'>No projects yet. Add your first project using the form.</p>
-                    ) : (
-                        <ul>
-                            {projects.map((project) => (
-                                <li
-                                    key={project.id}
-                                    className={`admin-project-item ${editingId === project.id ? 'is-editing' : ''} ${draggingId === project.id ? 'is-dragging' : ''} ${dropTargetId === project.id ? 'is-drop-target' : ''}`}
-                                    draggable={!editingId}
-                                    onDragStart={(event) => handleProjectDragStart(project.id, event)}
-                                    onDragOver={(event) => handleProjectDragOver(project.id, event)}
-                                    onDrop={(event) => handleProjectDrop(project.id, event)}
-                                    onDragEnd={handleProjectDragEnd}
-                                >
-                                    {editingId === project.id ? (
-                                        <div className='admin-project-edit'>
-                                            <input
-                                                type='text'
-                                                placeholder='Project title'
-                                                value={editForm.title}
-                                                onChange={(event) => setEditForm((prev) => ({ ...prev, title: event.target.value }))}
-                                            />
-                                            {renderImageField('edit', editForm.image, (image) => setEditForm((prev) => ({ ...prev, image })), isUploadingEditImage)}
-                                            <input
-                                                type='url'
-                                                placeholder='GitHub URL'
-                                                value={editForm.github}
-                                                onChange={(event) => setEditForm((prev) => ({ ...prev, github: event.target.value }))}
-                                            />
-                                            <input
-                                                type='url'
-                                                placeholder='Live demo URL (optional)'
-                                                value={editForm.demo}
-                                                onChange={(event) => setEditForm((prev) => ({ ...prev, demo: event.target.value }))}
-                                            />
-                                            <input
-                                                type='text'
-                                                placeholder='Tags (comma separated)'
-                                                value={editForm.tags}
-                                                onChange={(event) => setEditForm((prev) => ({ ...prev, tags: event.target.value }))}
-                                            />
-                                            <textarea
-                                                placeholder='Short description'
-                                                value={editForm.desc}
-                                                onChange={(event) => setEditForm((prev) => ({ ...prev, desc: event.target.value }))}
-                                            />
-
-                                            <div className='admin-checkboxes'>
-                                                <label><input type='checkbox' checked={editForm.isNew} onChange={(event) => setEditForm((prev) => ({ ...prev, isNew: event.target.checked }))} /> New</label>
-                                                <label><input type='checkbox' checked={editForm.isFeatured} onChange={(event) => setEditForm((prev) => ({ ...prev, isFeatured: event.target.checked }))} /> Featured</label>
-                                                <label><input type='checkbox' checked={editForm.isPopular} onChange={(event) => setEditForm((prev) => ({ ...prev, isPopular: event.target.checked }))} /> Popular</label>
-                                            </div>
-
-                                            <div className='admin-project-actions'>
-                                                <button
-                                                    type='button'
-                                                    className='admin-btn admin-btn-primary'
-                                                    onClick={() => handleSaveProject(project.id)}
-                                                    disabled={isSavingId === project.id || isUploadingEditImage}
-                                                >
-                                                    {isSavingId === project.id ? 'Saving...' : isUploadingEditImage ? 'Uploading Image...' : 'Save'}
-                                                </button>
-                                                <button
-                                                    type='button'
-                                                    className='admin-btn admin-btn-secondary'
-                                                    onClick={cancelEditing}
-                                                    disabled={isSavingId === project.id}
-                                                >
-                                                    Cancel
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <>
-                                            <div className='admin-project-meta'>
-                                                <p className='admin-project-drag-label'>Drag to reorder</p>
-                                                <h3>{project.title}</h3>
-                                                <p>{project.tags.join(', ')}</p>
-                                            </div>
-                                            <div className='admin-project-actions'>
-                                                <button
-                                                    type='button'
-                                                    className='admin-btn admin-btn-secondary'
-                                                    onClick={() => startEditing(project)}
-                                                    disabled={isDeletingId === project.id}
-                                                >
-                                                    Edit
-                                                </button>
-                                                <button
-                                                    type='button'
-                                                    className='admin-btn admin-btn-danger'
-                                                    onClick={() => handleDeleteProject(project.id)}
-                                                    disabled={isDeletingId === project.id}
-                                                >
-                                                    {isDeletingId === project.id ? 'Removing...' : 'Remove'}
-                                                </button>
-                                            </div>
-                                        </>
-                                    )}
-                                </li>
-                            ))}
-                        </ul>
-                    )}
-                </section>
-            </div>
+            <AdminProjectsPanel
+                form={form}
+                setForm={setForm}
+                editForm={editForm}
+                setEditForm={setEditForm}
+                isSubmitting={isSubmitting}
+                isDeletingId={isDeletingId}
+                isSavingId={isSavingId}
+                editingId={editingId}
+                isUploadingCreateImage={isUploadingCreateImage}
+                isUploadingEditImage={isUploadingEditImage}
+                draggingId={draggingId}
+                dropTargetId={dropTargetId}
+                projects={projects}
+                isLoadingProjects={isLoadingProjects}
+                cloudinaryReady={CLOUDINARY_READY}
+                onAddProject={handleAddProject}
+                onImageUpload={handleImageUpload}
+                onProjectDragStart={handleProjectDragStart}
+                onProjectDragOver={handleProjectDragOver}
+                onProjectDrop={handleProjectDrop}
+                onProjectDragEnd={handleProjectDragEnd}
+                onSaveProject={handleSaveProject}
+                onCancelEditing={cancelEditing}
+                onStartEditing={startEditing}
+                onDeleteProject={handleDeleteProject}
+            />
 
             <AdminResumePanel
                 resume={resume}
@@ -794,6 +741,12 @@ const AdminDashboard = () => {
                 onStartEditingExperience={startEditingExperience}
                 isDeletingExperienceId={isDeletingExperienceId}
                 onDeleteExperience={handleDeleteExperience}
+                draggingExperienceId={draggingExperienceId}
+                dropTargetExperienceId={dropTargetExperienceId}
+                onExperienceDragStart={handleExperienceDragStart}
+                onExperienceDragOver={handleExperienceDragOver}
+                onExperienceDrop={handleExperienceDrop}
+                onExperienceDragEnd={handleExperienceDragEnd}
             />
 
             <AdminQualificationPanel

@@ -50,7 +50,7 @@ const Contact = () => {
       <h2 className='medium-title'>Contact Me</h2>
 
       <div className='container contact__container'>
-        <div className='contact__options'>
+        <div className='contact__options contact__panel'>
           <article className='contact__option'>
             <MdOutlineEmail className='contact__option-icon' />
             <h3>Email</h3>
@@ -68,11 +68,15 @@ const Contact = () => {
               Connect with me
             </a>
           </article>
-
-
         </div>
 
-        <form ref={form} onSubmit={sendEmail} aria-describedby='contact-form-status'>
+        <form
+          ref={form}
+          onSubmit={sendEmail}
+          aria-describedby='contact-form-status'
+          aria-busy={messageSubmitting}
+          className='contact__panel contact__form'
+        >
           <div className='contact__form-group'>
             <label htmlFor='contact-name'>Full Name</label>
             <input
@@ -80,6 +84,7 @@ const Contact = () => {
               type='text'
               name='from_name'
               placeholder='Your Full Name'
+              autoComplete='name'
               required
             />
           </div>
@@ -90,6 +95,7 @@ const Contact = () => {
               type='email'
               name='reply_to'
               placeholder='Your Email'
+              autoComplete='email'
               required
             />
           </div>
@@ -100,6 +106,7 @@ const Contact = () => {
               name='message'
               rows='7'
               placeholder='Your Message'
+              autoComplete='off'
               required
             ></textarea>
           </div>
@@ -112,16 +119,12 @@ const Contact = () => {
 
           {/* Error Message */}
           {error && (
-            <div id='contact-form-status' role='alert' aria-live='assertive' className='error-message'>
-              ⚠️ {error}
-            </div>
+            <div id='contact-form-status' role='alert' aria-live='assertive' className='error-message'> Error: {error}</div>
           )}
 
           {/* Success Message */}
           {messageSubmitted && !messageSubmitting && (
-            <div id='contact-form-status' role='status' aria-live='polite' className='success-message'>
-              ✅ Message sent successfully! I&apos;ll get back to you soon.
-            </div>
+            <div id='contact-form-status' role='status' aria-live='polite' className='success-message'> Message sent successfully. I&apos;ll get back to you soon.</div>
           )}
 
           {/* Submit Button States */}
@@ -153,3 +156,4 @@ const Contact = () => {
 };
 
 export default Contact;
+

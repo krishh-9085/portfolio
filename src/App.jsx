@@ -12,7 +12,7 @@ import Footer from './components/footer/Footer';
 import Switch from './components/switch/Switch';
 import ErrorBoundary from './components/ErrorBoundary';
 import { SwitchContext } from './contexts/SwitchContext';
-import './app.css';
+import './App.css';
 
 const AdminDashboard = lazy(() => import('./components/admin/AdminDashboard'));
 
@@ -35,10 +35,12 @@ const HomePage = ({ darkMode, setDarkMode, myStorage }) => (
 
 const App = () => {
   const myStorage = typeof window !== 'undefined' ? window.localStorage : null;
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(true);
 
   useEffect(() => {
-    if (myStorage?.getItem('darkMode') === 'true') setDarkMode(true);
+    const savedTheme = myStorage?.getItem('darkMode');
+    if (savedTheme === 'true') setDarkMode(true);
+    if (savedTheme === 'false') setDarkMode(false);
   }, [myStorage]);
 
   return (

@@ -14,7 +14,13 @@ const AdminExperiencePanel = ({
   onCancelEditingExperience,
   onStartEditingExperience,
   isDeletingExperienceId,
-  onDeleteExperience
+  onDeleteExperience,
+  draggingExperienceId,
+  dropTargetExperienceId,
+  onExperienceDragStart,
+  onExperienceDragOver,
+  onExperienceDrop,
+  onExperienceDragEnd
 }) => (
   <section className='admin-experience-panel'>
     <h2 className='admin-title'>Experience Skills</h2>
@@ -64,7 +70,15 @@ const AdminExperiencePanel = ({
             ) : (
               <ul className='admin-experience-list'>
                 {experience[key].map((item) => (
-                  <li key={item.id} className='admin-experience-item'>
+                  <li
+                    key={item.id}
+                    className={`admin-experience-item ${editingExperienceId === item.id ? 'is-editing' : ''} ${draggingExperienceId === item.id ? 'is-dragging' : ''} ${dropTargetExperienceId === item.id ? 'is-drop-target' : ''}`}
+                    draggable={!editingExperienceId}
+                    onDragStart={(event) => onExperienceDragStart(item.id, key, event)}
+                    onDragOver={(event) => onExperienceDragOver(item.id, event)}
+                    onDrop={(event) => onExperienceDrop(item.id, key, event)}
+                    onDragEnd={onExperienceDragEnd}
+                  >
                     {editingExperienceId === item.id ? (
                       <div className='admin-experience-edit'>
                         <div className='admin-experience-form-row'>
@@ -111,6 +125,7 @@ const AdminExperiencePanel = ({
                     ) : (
                       <>
                         <div className='admin-experience-meta'>
+                          <p className='admin-project-drag-label'>Drag to reorder</p>
                           <h4>{item.skill}</h4>
                           <p>{item.level}</p>
                         </div>

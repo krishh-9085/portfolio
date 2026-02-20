@@ -187,3 +187,34 @@ export const removeExperienceItem = async (itemId) => {
 
     writeExperience(next);
 };
+
+export const reorderExperienceItems = async (category, sourceItemId, targetItemId) => {
+    if (!isAdminAuthenticated()) {
+        throw new Error('Unauthorized admin action.');
+    }
+
+    const nextCategory = normalizeCategory(category);
+    const sourceId = String(sourceItemId);
+    const targetId = String(targetItemId);
+
+    if (!sourceId || !targetId || sourceId === targetId) {
+        return;
+    }
+
+    const current = readExperience();
+    const items = [...current[nextCategory]];
+    const sourceIndex = items.findIndex((item) => item.id === sourceId);
+    const targetIndex = items.findIndex((item) => item.id === targetId);
+
+    if (sourceIndex === -1 || targetIndex === -1) {
+        throw new Error('Could not reorder experience skills.');
+    }
+
+    const [movedItem] = items.splice(sourceIndex, 1);
+    items.splice(targetIndex, 0, movedItem);
+
+    writeExperience({
+        ...current,
+        [nextCategory]: items
+    });
+};

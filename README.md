@@ -2,6 +2,35 @@
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
+## Cloudinary Image Upload (Admin)
+
+Admin project image uploads use Cloudinary. Add these variables in `.env`:
+
+```
+REACT_APP_CLOUDINARY_CLOUD_NAME=your_cloud_name
+REACT_APP_CLOUDINARY_UPLOAD_PRESET=your_unsigned_upload_preset
+REACT_APP_CLOUDINARY_FOLDER=portfolio-projects
+```
+
+Notes:
+- `REACT_APP_CLOUDINARY_UPLOAD_PRESET` must be an unsigned upload preset.
+- You can still paste an image URL manually in admin forms.
+
+## Supabase Resume Upload (Admin)
+
+Resume drag-and-drop uploads use Supabase Storage. Add these variables in `.env`:
+
+```
+REACT_APP_SUPABASE_URL=https://your-project-ref.supabase.co
+REACT_APP_SUPABASE_ANON_KEY=your_anon_key
+REACT_APP_SUPABASE_RESUME_BUCKET=resumes
+REACT_APP_SUPABASE_RESUME_FOLDER=portfolio
+```
+
+Notes:
+- Make the resume bucket public (or serve signed URLs from a backend).
+- Admin uploads only PDF files for resume.
+
 ## Available Scripts
 
 In the project directory, you can run:

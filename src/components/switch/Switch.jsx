@@ -8,16 +8,22 @@ function Switch() {
 
   // Load theme from localStorage on first load
   useEffect(() => {
-    const saved = localStorage.getItem("darkMode");
+    if (typeof window === "undefined") {
+      return;
+    }
+    const saved = window.localStorage.getItem("darkMode");
     if (saved !== null) {
       setDarkMode(saved === "true");
     }
-  }, []);
+  }, [setDarkMode]);
 
   // Apply theme to body + save
   useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
     document.body.setAttribute("data-theme", darkMode ? "dark" : "light");
-    localStorage.setItem("darkMode", darkMode);
+    window.localStorage.setItem("darkMode", String(darkMode));
   }, [darkMode]);
 
   return (

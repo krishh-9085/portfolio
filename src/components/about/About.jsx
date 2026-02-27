@@ -72,6 +72,10 @@ const About = () => {
         </div>
 
         <div className='about__content'>
+          <p className='about__intro'>
+            Full-Stack Developer focused on clean UI, reliable APIs, and fast web experiences.
+          </p>
+
           <div className='about__cards'>
             <article className='about__card'>
               <FaAward className='about__icon' />
@@ -92,15 +96,25 @@ const About = () => {
             </article>
           </div>
 
-          <p>
-            I am an enthusiastic and passionate Full-Stack Web Developer based in India, 
-            with around a year of experience dedicated to building responsive web apps, 
-            delivering quality solutions, and driving project success.
+          <p className='about__description'>
+            I am a passionate developer based in India, building responsive and user-focused products
+            with React, JavaScript, Node.js, and modern web tooling.
           </p>
 
-          <a href='#contact' className='btn btn-primary'>
-            Let&apos;s Talk
-          </a>
+          <ul className='about__highlights'>
+            <li>Builds responsive interfaces with performance-first practices.</li>
+            <li>Designs scalable backend logic and clean data flow.</li>
+            <li>Continuously learning and shipping real-world projects.</li>
+          </ul>
+
+          <div className='about__actions'>
+            <a href='#contact' className='btn btn-primary'>
+              Let&apos;s Talk
+            </a>
+            <a href='#portfolio' className='btn'>
+              View Projects
+            </a>
+          </div>
         </div>
       </div>
     </section>

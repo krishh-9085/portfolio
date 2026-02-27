@@ -1,6 +1,6 @@
 import './footer.css';
 import { FaLinkedinIn } from 'react-icons/fa';
-import { FiInstagram } from 'react-icons/fi';
+import { FaGithub } from 'react-icons/fa';
 
 const Footer = () => {
   return (
@@ -43,12 +43,12 @@ const Footer = () => {
           <FaLinkedinIn />
         </a>
         <a
-          href='https://www.instagram.com/krishxpvtt/'
-          aria-label='Instagram'
+          href='https://github.com/krishh-9085'
+          aria-label='GitHub'
           target='_blank'
           rel='noreferrer'
         >
-          <FiInstagram />
+          <FaGithub />
         </a>
 
       </div>

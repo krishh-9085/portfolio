@@ -5,6 +5,7 @@ const QUALIFICATION_STORAGE_KEY = 'portfolio_qualification_v1';
 const QUALIFICATION_UPDATED_EVENT = 'portfolio-qualification-updated';
 const QUALIFICATION_CATEGORIES = ['education', 'experience'];
 const QUALIFICATION_REFRESH_MS = 30000;
+const FETCH_TIMEOUT_MS = 8000;
 const SUPABASE_URL = process.env.REACT_APP_SUPABASE_URL;
 const SUPABASE_ANON_KEY = process.env.REACT_APP_SUPABASE_ANON_KEY;
 const SUPABASE_QUALIFICATION_TABLE = process.env.REACT_APP_SUPABASE_QUALIFICATION_TABLE;
@@ -45,6 +46,25 @@ const parseSupabaseError = async (response, fallbackMessage) => {
         json = null;
     }
     return json?.message || json?.error || fallbackMessage;
+};
+
+const fetchWithTimeout = async (url, options = {}, timeoutMs = FETCH_TIMEOUT_MS) => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+    try {
+        return await fetch(url, {
+            ...options,
+            signal: controller.signal
+        });
+    } catch (error) {
+        if (error?.name === 'AbortError') {
+            throw new Error('Could not load qualification entries right now.');
+        }
+        throw error;
+    } finally {
+        clearTimeout(timeoutId);
+    }
 };
 
 const createDefaultQualification = () => ({
@@ -145,9 +165,18 @@ const writeQualificationToStorage = (qualification) => {
     emitQualificationUpdated();
 };
 
+const cacheQualificationToStorage = (qualification) => {
+    if (!canUseStorage) {
+        return;
+    }
+
+    const payload = normalizeQualification(qualification);
+    window.localStorage.setItem(QUALIFICATION_STORAGE_KEY, JSON.stringify(payload));
+};
+
 const readQualificationFromSupabase = async () => {
     const query = 'select=*&order=category.asc,sort_order.asc,created_at.asc';
-    const response = await fetch(getSupabaseEndpoint(query), {
+    const response = await fetchWithTimeout(getSupabaseEndpoint(query), {
         method: 'GET',
         headers: createSupabaseHeaders()
     });
@@ -163,7 +192,9 @@ const readQualificationFromSupabase = async () => {
 
 const readQualification = async () => {
     if (isSupabaseQualificationConfigured()) {
-        return readQualificationFromSupabase();
+        const qualification = await readQualificationFromSupabase();
+        cacheQualificationToStorage(qualification);
+        return qualification;
     }
     return readQualificationFromStorage();
 };
@@ -176,7 +207,7 @@ const flattenQualification = (qualification) => ([
 const writeQualification = async (qualification) => {
     if (isSupabaseQualificationConfigured()) {
         const payload = flattenQualification(normalizeQualification(qualification)).map((item) => itemToRow(item));
-        const response = await fetch(getSupabaseEndpoint('on_conflict=id'), {
+        const response = await fetchWithTimeout(getSupabaseEndpoint('on_conflict=id'), {
             method: 'POST',
             headers: createSupabaseHeaders({
                 'Content-Type': 'application/json',
@@ -190,6 +221,7 @@ const writeQualification = async (qualification) => {
             throw new Error(message);
         }
 
+        cacheQualificationToStorage(qualification);
         emitQualificationUpdated();
         return;
     }
@@ -202,10 +234,17 @@ const findItemCategory = (qualification, itemId) => (
 );
 
 export const subscribeToQualification = (onData, onError) => {
+    if (isSupabaseQualificationConfigured() && canUseStorage) {
+        onData(readQualificationFromStorage());
+    }
+
     const syncQualification = async () => {
         try {
             onData(await readQualification());
         } catch (error) {
+            if (isSupabaseQualificationConfigured() && canUseStorage) {
+                onData(readQualificationFromStorage());
+            }
             if (onError) {
                 onError(error);
             }
@@ -350,7 +389,7 @@ export const removeQualificationItem = async (itemId) => {
     };
 
     if (isSupabaseQualificationConfigured()) {
-        const response = await fetch(getSupabaseEndpoint(`id=eq.${encodeURIComponent(targetId)}`), {
+        const response = await fetchWithTimeout(getSupabaseEndpoint(`id=eq.${encodeURIComponent(targetId)}`), {
             method: 'DELETE',
             headers: createSupabaseHeaders()
         });

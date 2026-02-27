@@ -1,7 +1,12 @@
 .admin-page {
   min-height: 100vh;
   padding: 3rem 0 4rem;
-  background: radial-gradient(circle at top right, #1e293b 0%, #111827 45%, #0b1120 100%);
+  background: radial-gradient(
+    circle at top right,
+    #1e293b 0%,
+    #111827 45%,
+    #0b1120 100%
+  );
   color: #e5e7eb;
 }
 
@@ -172,7 +177,7 @@
   color: #cbd5e1;
 }
 
-.admin-checkboxes input[type='checkbox'] {
+.admin-checkboxes input[type="checkbox"] {
   width: 15px;
   height: 15px;
   accent-color: #22c55e;
@@ -196,7 +201,10 @@
   border-radius: 0.65rem;
   background: rgba(2, 6, 23, 0.45);
   cursor: grab;
-  transition: border-color 160ms ease, background-color 160ms ease, opacity 160ms ease;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    opacity 160ms ease;
   overflow: hidden;
 }
 
@@ -294,7 +302,10 @@
   line-height: 1;
   cursor: pointer;
   padding: 0.6rem 0.95rem;
-  transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease;
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease;
 }
 
 .admin-btn:disabled {
@@ -501,7 +512,10 @@
   gap: 0.55rem;
   background: rgba(15, 23, 42, 0.76);
   cursor: grab;
-  transition: border-color 160ms ease, background-color 160ms ease, opacity 160ms ease;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    opacity 160ms ease;
 }
 
 .admin-experience-item.is-dragging {
@@ -906,4 +920,261 @@
     right: 0.6rem;
     width: calc(100vw - 1.2rem);
   }
+}
+
+/* ========== ADMIN THEME ALIGNMENT (PORTFOLIO DARK MODE) ========== */
+.admin-page {
+  --admin-bg: var(--color-dark, #111111);
+  --admin-surface: var(--color-bg-variant, #222222);
+  --admin-surface-soft: rgba(34, 34, 34, 0.78);
+  --admin-surface-deep: rgba(17, 17, 17, 0.88);
+  --admin-border: rgba(255, 255, 255, 0.12);
+  --admin-border-strong: rgba(255, 255, 255, 0.24);
+  --admin-text: var(--color-white, #ffffff);
+  --admin-muted: rgba(255, 255, 255, 0.66);
+  --admin-accent: var(--color-green, #54c571);
+  --admin-accent-soft: rgba(84, 197, 113, 0.16);
+  --admin-danger: #f87171;
+  --admin-radius-sm: var(--border-radius-sm, 0.25rem);
+  --admin-radius-md: var(--border-radius-md, 0.5rem);
+  --admin-radius-lg: var(--border-radius-lg, 1rem);
+  --admin-space-1: var(--space-1, 0.4rem);
+  --admin-space-2: var(--space-2, 0.7rem);
+  --admin-space-3: var(--space-3, 1rem);
+  --admin-space-4: var(--space-4, 1.4rem);
+  --admin-space-5: var(--space-5, 2rem);
+
+  background:
+    radial-gradient(
+      circle at top right,
+      rgba(84, 197, 113, 0.08) 0%,
+      transparent 34%
+    ),
+    radial-gradient(
+      circle at top left,
+      rgba(68, 68, 68, 0.45) 0%,
+      transparent 48%
+    ),
+    var(--admin-bg);
+  color: var(--admin-text);
+}
+
+.admin-shell.container {
+  border-radius: var(--admin-radius-lg);
+  padding: var(--admin-space-4);
+  border-color: var(--admin-border);
+  background: var(--admin-surface-soft);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  box-shadow:
+    0 16px 40px rgba(0, 0, 0, 0.32),
+    0 0 0 1px rgba(255, 255, 255, 0.02) inset;
+}
+
+.admin-header {
+  margin-bottom: var(--admin-space-4);
+  gap: var(--admin-space-3);
+}
+
+.admin-content-grid,
+.admin-layout-sections {
+  gap: var(--admin-space-3);
+}
+
+.admin-page-title,
+.admin-title,
+.admin-project-item h3,
+.admin-experience-column h3,
+.admin-qualification-column h3,
+.admin-experience-meta h4,
+.admin-qualification-meta h4,
+.admin-confirm-dialog h3 {
+  color: var(--admin-text);
+}
+
+.admin-info,
+.admin-upload-note,
+.admin-resume-dropzone span,
+.admin-resume-dropzone small,
+.admin-project-item p,
+.admin-experience-meta p,
+.admin-qualification-meta p,
+.admin-qualification-meta small,
+.admin-confirm-dialog p {
+  color: var(--admin-muted);
+}
+
+.admin-form,
+.admin-projects,
+.admin-resume-panel,
+.admin-experience-panel,
+.admin-qualification-panel,
+.admin-confirm-dialog {
+  border-radius: var(--admin-radius-lg);
+  padding: var(--admin-space-3);
+  border-color: var(--admin-border);
+  background: var(--admin-surface-soft);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.admin-form,
+.admin-project-edit,
+.admin-experience-edit,
+.admin-qualification-edit {
+  gap: var(--admin-space-2);
+}
+
+.admin-project-item,
+.admin-experience-item,
+.admin-qualification-item,
+.admin-experience-column,
+.admin-qualification-column,
+.admin-resume-dropzone,
+.admin-image-preview {
+  border-radius: var(--admin-radius-md);
+  border-color: var(--admin-border);
+  background: var(--admin-surface-deep);
+}
+
+.admin-project-item,
+.admin-experience-item,
+.admin-qualification-item {
+  padding: var(--admin-space-2);
+}
+
+.admin-experience-column,
+.admin-qualification-column {
+  padding: var(--admin-space-2);
+}
+
+.admin-project-item:hover,
+.admin-experience-item:hover,
+.admin-qualification-item:hover,
+.admin-upload-btn:hover {
+  border-color: var(--admin-border-strong);
+}
+
+.admin-project-item.is-drop-target,
+.admin-experience-item.is-drop-target {
+  border-color: var(--admin-accent);
+  background: var(--admin-accent-soft);
+}
+
+.admin-form input,
+.admin-form textarea,
+.admin-project-edit input,
+.admin-project-edit textarea,
+.admin-experience-form-row select,
+.admin-experience-form-row input,
+.admin-qualification-form-row select,
+.admin-qualification-form-row input {
+  border-radius: var(--admin-radius-md);
+  padding: 0.72rem 0.82rem;
+  border-color: var(--admin-border);
+  background: rgba(17, 17, 17, 0.95);
+  color: var(--admin-text);
+}
+
+.admin-form input::placeholder,
+.admin-form textarea::placeholder,
+.admin-project-edit input::placeholder,
+.admin-project-edit textarea::placeholder {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.admin-form input:focus,
+.admin-form textarea:focus,
+.admin-project-edit input:focus,
+.admin-project-edit textarea:focus,
+.admin-experience-form-row select:focus,
+.admin-experience-form-row input:focus,
+.admin-qualification-form-row select:focus,
+.admin-qualification-form-row input:focus {
+  border-color: var(--admin-accent);
+  box-shadow: 0 0 0 3px rgba(84, 197, 113, 0.22);
+}
+
+.admin-upload-btn,
+.admin-btn-secondary {
+  border-radius: var(--admin-radius-md);
+  background: rgba(34, 34, 34, 0.9);
+  border-color: var(--admin-border);
+  color: var(--admin-text);
+}
+
+.admin-btn {
+  border-radius: var(--admin-radius-md);
+  min-height: 44px;
+  padding: 0.72rem 1.05rem;
+}
+
+.admin-btn-secondary:hover:not(:disabled) {
+  background: rgba(68, 68, 68, 0.9);
+  border-color: var(--admin-border-strong);
+}
+
+.admin-btn-primary {
+  background: var(--admin-accent);
+  border-color: var(--admin-accent);
+  color: #052e16;
+}
+
+.admin-btn-primary:hover:not(:disabled) {
+  background: #43b862;
+  border-color: #43b862;
+  color: #eafff2;
+}
+
+.admin-btn-danger {
+  background: rgba(248, 113, 113, 0.14);
+  border-color: rgba(248, 113, 113, 0.4);
+  color: #ffd2d2;
+}
+
+.admin-btn-danger:hover:not(:disabled) {
+  background: rgba(248, 113, 113, 0.24);
+}
+
+.admin-project-drag-label,
+.admin-resume-link {
+  color: var(--admin-accent);
+}
+
+.admin-resume-link:hover {
+  color: #8be5a0;
+}
+
+.admin-error {
+  color: #ffd2d2;
+  border-color: rgba(248, 113, 113, 0.36);
+  background: rgba(127, 29, 29, 0.35);
+}
+
+.admin-status {
+  color: #cff7db;
+  border-color: rgba(84, 197, 113, 0.32);
+  background: rgba(16, 70, 43, 0.45);
+}
+
+.admin-toast {
+  border-radius: var(--admin-radius-md);
+  border-color: var(--admin-border);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+.admin-toast.is-success {
+  color: #cff7db;
+  border-color: rgba(84, 197, 113, 0.34);
+  background: rgba(16, 70, 43, 0.82);
+}
+
+.admin-toast.is-error {
+  color: #ffd2d2;
+  border-color: rgba(248, 113, 113, 0.36);
+  background: rgba(127, 29, 29, 0.82);
+}
+
+.admin-confirm-overlay {
+  background: rgba(0, 0, 0, 0.62);
 }

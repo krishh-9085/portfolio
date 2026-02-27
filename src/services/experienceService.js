@@ -5,6 +5,7 @@ const EXPERIENCE_STORAGE_KEY = 'portfolio_experience_v1';
 const EXPERIENCE_UPDATED_EVENT = 'portfolio-experience-updated';
 const EXPERIENCE_CATEGORIES = ['frontend', 'backend'];
 const EXPERIENCE_REFRESH_MS = 30000;
+const FETCH_TIMEOUT_MS = 8000;
 const SUPABASE_URL = process.env.REACT_APP_SUPABASE_URL;
 const SUPABASE_ANON_KEY = process.env.REACT_APP_SUPABASE_ANON_KEY;
 const SUPABASE_EXPERIENCE_TABLE = process.env.REACT_APP_SUPABASE_EXPERIENCE_TABLE;
@@ -45,6 +46,25 @@ const parseSupabaseError = async (response, fallbackMessage) => {
         json = null;
     }
     return json?.message || json?.error || fallbackMessage;
+};
+
+const fetchWithTimeout = async (url, options = {}, timeoutMs = FETCH_TIMEOUT_MS) => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+    try {
+        return await fetch(url, {
+            ...options,
+            signal: controller.signal
+        });
+    } catch (error) {
+        if (error?.name === 'AbortError') {
+            throw new Error('Could not load experience skills right now.');
+        }
+        throw error;
+    } finally {
+        clearTimeout(timeoutId);
+    }
 };
 
 const createDefaultExperience = () => ({
@@ -140,9 +160,18 @@ const writeExperienceToStorage = (experience) => {
     emitExperienceUpdated();
 };
 
+const cacheExperienceToStorage = (experience) => {
+    if (!canUseStorage) {
+        return;
+    }
+
+    const payload = normalizeExperience(experience);
+    window.localStorage.setItem(EXPERIENCE_STORAGE_KEY, JSON.stringify(payload));
+};
+
 const readExperienceFromSupabase = async () => {
     const query = 'select=*&order=category.asc,sort_order.asc,created_at.asc';
-    const response = await fetch(getSupabaseEndpoint(query), {
+    const response = await fetchWithTimeout(getSupabaseEndpoint(query), {
         method: 'GET',
         headers: createSupabaseHeaders()
     });
@@ -158,7 +187,9 @@ const readExperienceFromSupabase = async () => {
 
 const readExperience = async () => {
     if (isSupabaseExperienceConfigured()) {
-        return readExperienceFromSupabase();
+        const experience = await readExperienceFromSupabase();
+        cacheExperienceToStorage(experience);
+        return experience;
     }
     return readExperienceFromStorage();
 };
@@ -171,7 +202,7 @@ const flattenExperience = (experience) => ([
 const writeExperience = async (experience) => {
     if (isSupabaseExperienceConfigured()) {
         const payload = flattenExperience(normalizeExperience(experience)).map((item) => itemToRow(item));
-        const response = await fetch(getSupabaseEndpoint('on_conflict=id'), {
+        const response = await fetchWithTimeout(getSupabaseEndpoint('on_conflict=id'), {
             method: 'POST',
             headers: createSupabaseHeaders({
                 'Content-Type': 'application/json',
@@ -185,6 +216,7 @@ const writeExperience = async (experience) => {
             throw new Error(message);
         }
 
+        cacheExperienceToStorage(experience);
         emitExperienceUpdated();
         return;
     }
@@ -197,10 +229,17 @@ const findItemCategory = (experience, itemId) => (
 );
 
 export const subscribeToExperience = (onData, onError) => {
+    if (isSupabaseExperienceConfigured() && canUseStorage) {
+        onData(readExperienceFromStorage());
+    }
+
     const syncExperience = async () => {
         try {
             onData(await readExperience());
         } catch (error) {
+            if (isSupabaseExperienceConfigured() && canUseStorage) {
+                onData(readExperienceFromStorage());
+            }
             if (onError) {
                 onError(error);
             }
@@ -342,7 +381,7 @@ export const removeExperienceItem = async (itemId) => {
     };
 
     if (isSupabaseExperienceConfigured()) {
-        const response = await fetch(getSupabaseEndpoint(`id=eq.${encodeURIComponent(targetId)}`), {
+        const response = await fetchWithTimeout(getSupabaseEndpoint(`id=eq.${encodeURIComponent(targetId)}`), {
             method: 'DELETE',
             headers: createSupabaseHeaders()
         });

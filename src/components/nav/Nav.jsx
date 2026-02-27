@@ -1,194 +1,106 @@
 import './nav.css';
-import { AiOutlineHome } from 'react-icons/ai';
-import { AiOutlineUser } from 'react-icons/ai';
-import { BiBook } from 'react-icons/bi';
-import { BiTask } from 'react-icons/bi';
+import { AiOutlineHome, AiOutlineUser } from 'react-icons/ai';
+import { BiBook, BiTask } from 'react-icons/bi';
 import { SlGraduation } from 'react-icons/sl';
 import { RiServiceLine } from 'react-icons/ri';
 import { BsChatDots } from 'react-icons/bs';
-import { useState, useEffect } from 'react';
-import { Tooltip } from 'react-tooltip';
+import { useState, useEffect, useRef, useCallback } from 'react';
+
+const navItems = [
+  { id: 'home', label: 'Home', icon: AiOutlineHome },
+  { id: 'about', label: 'About', icon: AiOutlineUser },
+  { id: 'experience', label: 'Experience', icon: BiBook },
+  { id: 'qualification', label: 'Qualification', icon: SlGraduation },
+  { id: 'expertise', label: 'Expertise', icon: BiTask },
+  { id: 'portfolio', label: 'Projects', icon: RiServiceLine },
+  { id: 'contact', label: 'Contact', icon: BsChatDots },
+];
 
 const Nav = () => {
   const [activeNav, setActiveNav] = useState('#home');
-  
+  const [hovered, setHovered] = useState(null);
+  const navRef = useRef(null);
+  const pillRef = useRef(null);
+
+  const movePill = useCallback(() => {
+    if (!navRef.current || !pillRef.current) return;
+    const activeLink = navRef.current.querySelector('a.active');
+    if (!activeLink) return;
+    const navRect = navRef.current.getBoundingClientRect();
+    const linkRect = activeLink.getBoundingClientRect();
+    pillRef.current.style.width = `${linkRect.width}px`;
+    pillRef.current.style.height = `${linkRect.height}px`;
+    pillRef.current.style.left = `${linkRect.left - navRect.left}px`;
+    pillRef.current.style.top = `${linkRect.top - navRect.top}px`;
+    pillRef.current.style.opacity = '1';
+  }, []);
+
   useEffect(() => {
-    // Create intersection observer to detect which section is currently visible
+    movePill();
+  }, [activeNav, movePill]);
+
+  useEffect(() => {
+    window.addEventListener('resize', movePill);
+    return () => window.removeEventListener('resize', movePill);
+  }, [movePill]);
+
+  useEffect(() => {
     const observerOptions = {
       root: null,
-      rootMargin: '-50% 0px -50% 0px', // Only trigger when section is in the middle 50% of viewport
-      threshold: 0
+      rootMargin: '-50% 0px -50% 0px',
+      threshold: 0,
     };
 
     const observerCallback = (entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
-          const sectionId = `#${entry.target.id}`;
-          setActiveNav(sectionId);
+          setActiveNav(`#${entry.target.id}`);
         }
       });
     };
 
     const observer = new IntersectionObserver(observerCallback, observerOptions);
-    
-    // Observe all sections
-    const sections = ['home', 'about', 'experience', 'expertise', 'qualification', 'projects', 'contact'];
     const sectionElements = [];
-    
-    sections.forEach(sectionId => {
-      const element = document.getElementById(sectionId);
-      if (element) {
-        observer.observe(element);
-        sectionElements.push(element);
+
+    navItems.forEach(({ id }) => {
+      const el = document.getElementById(id);
+      if (el) {
+        observer.observe(el);
+        sectionElements.push(el);
       }
     });
 
-    // Cleanup observer on component unmount
     return () => {
-      sectionElements.forEach(element => {
-        observer.unobserve(element);
-      });
+      sectionElements.forEach((el) => observer.unobserve(el));
       observer.disconnect();
     };
   }, []);
-  
-  return (
-    <nav role="navigation" aria-label="Main navigation">
-      <a
-        data-tooltip-content='Home'
-        data-tooltip-id='homeBtn'
-        href='#home'
-        aria-label='Navigate to Home section'
-        onClick={() => setActiveNav('#home')}
-        className={activeNav === '#home' ? 'active' : ''}
-      >
-        <AiOutlineHome aria-hidden="true" />
-      </a>
-      <a
-        data-tooltip-content='About'
-        data-tooltip-id='aboutBtn'
-        href='#about'
-        aria-label='Navigate to About section'
-        onClick={() => setActiveNav('#about')}
-        className={activeNav === '#about' ? 'active' : ''}
-      >
-        <AiOutlineUser aria-hidden="true" />
-      </a>
-      <a
-        data-tooltip-content='Experience'
-        data-tooltip-id='experienceBtn'
-        href='#experience'
-        aria-label='Navigate to Experience section'
-        onClick={() => setActiveNav('#experience')}
-        className={activeNav === '#experience' ? 'active' : ''}
-      >
-        <BiBook aria-hidden="true" />
-      </a>
-      <a
-        data-tooltip-content='Expertise'
-        data-tooltip-id='expertiseBtn'
-        href='#expertise'
-        aria-label='Navigate to Expertise section'
-        onClick={() => setActiveNav('#expertise')}
-        className={activeNav === '#expertise' ? 'active' : ''}
-      >
-        <BiTask aria-hidden="true" />
-      </a>
-      <a
-        data-tooltip-content='Qualification'
-        data-tooltip-id='qualificationBtn'
-        id='menu-qualification'
-        href='#qualification'
-        aria-label='Navigate to Qualification section'
-        onClick={() => setActiveNav('#qualification')}
-        className={activeNav === '#qualification' ? 'active' : ''}
-      >
-        <SlGraduation aria-hidden="true" />
-      </a>
-      <a
-        data-tooltip-content='projects'
-        data-tooltip-id='portfolioBtn'
-        href='#portfolio'
-        aria-label='Navigate to Portfolio section'
-        onClick={() => setActiveNav('#portfolio')}
-        className={activeNav === '#portfolio' ? 'active' : ''}
-      >
-        <RiServiceLine aria-hidden="true" />
-      </a>
-      <a
-        data-tooltip-content='Contact'
-        data-tooltip-id='contactBtn'
-        href='#contact'
-        aria-label='Navigate to Contact section'
-        onClick={() => setActiveNav('#contact')}
-        className={activeNav === '#contact' ? 'active' : ''}
-      >
-        <BsChatDots aria-hidden="true" />
-      </a>
 
-      <Tooltip
-        id='homeBtn'
-        place='top'
-        variant='dark'
-        effect='solid'
-        className='tooltip noArrow'
-      >
-        Home
-      </Tooltip>
-      <Tooltip
-        id='aboutBtn'
-        place='top'
-        variant='dark'
-        effect='solid'
-        className='tooltip noArrow'
-      >
-        About
-      </Tooltip>
-      <Tooltip
-        id='experienceBtn'
-        place='top'
-        variant='dark'
-        effect='solid'
-        className='tooltip noArrow'
-      >
-        Experience
-      </Tooltip>
-      <Tooltip
-        id='expertiseBtn'
-        place='top'
-        variant='dark'
-        effect='solid'
-        className='tooltip noArrow'
-      >
-        Expertise
-      </Tooltip>
-      <Tooltip
-        id='qualificationBtn'
-        place='top'
-        variant='dark'
-        effect='solid'
-        className='tooltip noArrow'
-      >
-        Qualification
-      </Tooltip>
-      <Tooltip
-        id='portfolioBtn'
-        place='top'
-        variant='dark'
-        effect='solid'
-        className='tooltip noArrow'
-      >
-        Portfolio
-      </Tooltip>
-      <Tooltip
-        id='contactBtn'
-        place='top'
-        variant='dark'
-        effect='solid'
-        className='tooltip noArrow'
-      >
-        Contact
-      </Tooltip>
+  return (
+    <nav ref={navRef} role="navigation" aria-label="Main navigation">
+      <span className="nav__pill" ref={pillRef} aria-hidden="true" />
+      {navItems.map(({ id, label, icon: Icon }) => {
+        const href = `#${id}`;
+        const isActive = activeNav === href;
+        return (
+          <a
+            key={id}
+            href={href}
+            aria-label={`Navigate to ${label}`}
+            onClick={() => setActiveNav(href)}
+            className={isActive ? 'active' : ''}
+            onMouseEnter={() => setHovered(id)}
+            onMouseLeave={() => setHovered(null)}
+          >
+            <Icon aria-hidden="true" />
+            <span
+              className={`nav__label ${isActive || hovered === id ? 'nav__label--visible' : ''}`}
+            >
+              {label}
+            </span>
+          </a>
+        );
+      })}
     </nav>
   );
 };

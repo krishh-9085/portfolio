@@ -3,7 +3,7 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 2rem;
-  align-items: start;
+  align-items: stretch;
 }
 
 /* ========== EXPERTISE CARDS ========== */
@@ -11,7 +11,9 @@
   background: var(--color-bg-variant);
   border-radius: 1.25rem;
   border: 1px solid rgba(255, 255, 255, 0.06);
-  height: fit-content;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
   transition:
     transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
     box-shadow 0.45s cubic-bezier(0.22, 1, 0.36, 1),
@@ -192,6 +194,7 @@
   padding: 1rem 1.25rem 1.25rem;
   background: var(--color-bg-variant);
   border-radius: 0 0 1.25rem 1.25rem;
+  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 0.15rem;

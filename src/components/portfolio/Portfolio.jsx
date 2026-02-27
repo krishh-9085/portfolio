@@ -1,33 +1,27 @@
 import { useState, useEffect, useRef } from 'react';
-import { BsArrowDownCircle, BsArrowUpCircle } from 'react-icons/bs';
 import { subscribeToProjects } from '../../services/projectsService';
 import './portfolio.css';
 
+const ITEMS_PER_PAGE = 6;
+const SKELETON_ITEMS = Array.from({ length: ITEMS_PER_PAGE }, (_, index) => `skeleton-${index}`);
 
 const Portfolio = () => {
   const [projects, setProjects] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [count, setCount] = useState(6);
-  const [isExpanding, setIsExpanding] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
   const [visibleItems, setVisibleItems] = useState(new Set());
   const observerRef = useRef();
   const portfolioRef = useRef();
+
+  const totalPages = Math.max(1, Math.ceil(projects.length / ITEMS_PER_PAGE));
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const paginatedProjects = projects.slice(startIndex, endIndex);
 
   useEffect(() => {
     const unsubscribe = subscribeToProjects(
       (items) => {
         setProjects(items);
-        setCount((prevCount) => {
-          if (items.length <= 6) {
-            return items.length;
-          }
-
-          if (prevCount !== 6 && prevCount > items.length) {
-            return items.length;
-          }
-
-          return prevCount;
-        });
         setIsLoading(false);
       },
       () => {
@@ -37,6 +31,13 @@ const Portfolio = () => {
 
     return () => unsubscribe();
   }, []);
+
+  useEffect(() => {
+    setCurrentPage((prevPage) => {
+      const maxPage = Math.max(1, Math.ceil(projects.length / ITEMS_PER_PAGE));
+      return Math.min(prevPage, maxPage);
+    });
+  }, [projects.length]);
 
   // Intersection Observer for scroll animations
   useEffect(() => {
@@ -71,31 +72,20 @@ const Portfolio = () => {
         observerRef.current?.unobserve(item);
       });
     };
-  }, [count]);
+  }, [currentPage, paginatedProjects.length]);
 
-  const handleToggleItems = () => {
-    if (projects.length <= 6) {
+  const handlePageChange = (nextPage) => {
+    if (nextPage < 1 || nextPage > totalPages || nextPage === currentPage) {
       return;
     }
 
-    setIsExpanding(true);
+    setCurrentPage(nextPage);
+    setVisibleItems(new Set());
 
-    if (count === 6) {
-      setCount(projects.length);
-    } else {
-      setCount(6);
-      // Smooth scroll to top of portfolio section
-      setTimeout(() => {
-        portfolioRef.current?.scrollIntoView({
-          behavior: 'smooth',
-          block: 'start'
-        });
-      }, 100);
-    }
-
-    setTimeout(() => {
-      setIsExpanding(false);
-    }, 800);
+    portfolioRef.current?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start'
+    });
   };
 
   return (
@@ -103,12 +93,26 @@ const Portfolio = () => {
       <h1 className='small-title animate-fade-in'>My Recent Work</h1>
       <h2 className='medium-title animate-fade-in'>Projects</h2>
 
-      {isLoading && <p className='container'>Loading projects...</p>}
-
-      <div className={`container portfolio__container ${isExpanding ? 'expanding' : ''}`}>
-        {projects
-          .slice(0, count)
-          .map(({ id, image, title, github, demo, tags = [], desc, isNew, isFeatured, isPopular }, index) => {
+      <div className='container portfolio__container'>
+        {isLoading
+          ? SKELETON_ITEMS.map((skeletonId) => (
+            <article key={skeletonId} className='portfolio__item portfolio__item--skeleton' aria-hidden='true'>
+              <div className='portfolio__item-image portfolio__skeleton-block'></div>
+              <div className='portfolio__content'>
+                <div className='portfolio__skeleton-title portfolio__skeleton-block'></div>
+                <div className='portfolio__tag'>
+                  <span className='portfolio__skeleton-pill portfolio__skeleton-block'></span>
+                  <span className='portfolio__skeleton-pill portfolio__skeleton-block'></span>
+                </div>
+                <div className='portfolio__skeleton-desc portfolio__skeleton-block'></div>
+                <div className='portfolio__item-cta'>
+                  <span className='btn btn-variant btn-disabled portfolio__skeleton-btn'>Github</span>
+                  <span className='btn btn-white btn-disabled portfolio__skeleton-btn'>Live Demo</span>
+                </div>
+              </div>
+            </article>
+          ))
+          : paginatedProjects.map(({ id, image, title, github, demo, tags = [], desc, isNew, isFeatured, isPopular }, index) => {
             const isVisible = visibleItems.has(String(id));
             const animationDelay = `${index * 100}ms`;
             const badges = [];
@@ -229,31 +233,50 @@ const Portfolio = () => {
             );
           })}
       </div>
-      <div className='btn-row'>
-        {projects.length > 6 && (
-          <button
-            onClick={handleToggleItems}
-            type='button'
-            className={`btn btn-dark-variant ${isExpanding ? 'loading' : ''}`}
-            disabled={isExpanding}
-          >
-            {isExpanding ? (
-              <div className="loading-spinner"></div>
-            ) : (
-              <>
-                See{' '}
-                {count === 6 ? (
-                  <>
-                    More <BsArrowDownCircle className='moreless' />
-                  </>
-                ) : (
-                  <>
-                    Less <BsArrowUpCircle className='moreless' />
-                  </>
-                )}
-              </>
-            )}
-          </button>
+
+      <div className='portfolio__pagination-wrap'>
+        <p className='portfolio__pagination-summary'>
+          Showing {projects.length === 0 ? 0 : startIndex + 1}-{Math.min(endIndex, projects.length)} of {projects.length} projects
+        </p>
+
+        {totalPages > 1 && (
+          <div className='portfolio__pagination' role='navigation' aria-label='Projects pagination'>
+            <button
+              type='button'
+              className='portfolio__pagination-btn'
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+            >
+              Previous
+            </button>
+
+            <div className='portfolio__pagination-numbers'>
+              {Array.from({ length: totalPages }, (_, index) => {
+                const page = index + 1;
+                return (
+                  <button
+                    key={page}
+                    type='button'
+                    className={`portfolio__pagination-number ${page === currentPage ? 'active' : ''}`}
+                    onClick={() => handlePageChange(page)}
+                    aria-label={`Go to page ${page}`}
+                    aria-current={page === currentPage ? 'page' : undefined}
+                  >
+                    {page}
+                  </button>
+                );
+              })}
+            </div>
+
+            <button
+              type='button'
+              className='portfolio__pagination-btn'
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+            >
+              Next
+            </button>
+          </div>
         )}
       </div>
     </section>

@@ -5,6 +5,7 @@ const PROJECTS_STORAGE_KEY = 'portfolio_projects_v1';
 const SUPABASE_PROJECTS_CACHE_KEY = 'portfolio_projects_supabase_cache_v1';
 const PROJECTS_UPDATED_EVENT = 'portfolio-projects-updated';
 const PROJECTS_REFRESH_MS = 30000;
+const FETCH_TIMEOUT_MS = 8000;
 const SUPABASE_URL = process.env.REACT_APP_SUPABASE_URL;
 const SUPABASE_ANON_KEY = process.env.REACT_APP_SUPABASE_ANON_KEY;
 const SUPABASE_PROJECTS_TABLE = process.env.REACT_APP_SUPABASE_PROJECTS_TABLE || 'portfolio_projects';
@@ -77,6 +78,25 @@ const parseSupabaseError = async (response, fallbackMessage) => {
         json = null;
     }
     return json?.message || json?.error || fallbackMessage;
+};
+
+const fetchWithTimeout = async (url, options = {}, timeoutMs = FETCH_TIMEOUT_MS) => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+    try {
+        return await fetch(url, {
+            ...options,
+            signal: controller.signal
+        });
+    } catch (error) {
+        if (error?.name === 'AbortError') {
+            throw new Error('Could not load projects right now.');
+        }
+        throw error;
+    } finally {
+        clearTimeout(timeoutId);
+    }
 };
 
 const readProjectsFromStorage = () => {
@@ -153,6 +173,20 @@ const readSupabaseProjectsCache = () => {
     }
 };
 
+const getImmediateProjectsForSupabase = () => {
+    const cachedProjects = readSupabaseProjectsCache();
+    if (cachedProjects.length > 0) {
+        return cachedProjects;
+    }
+
+    const localProjects = readProjectsFromStorage();
+    if (localProjects.length > 0) {
+        return localProjects;
+    }
+
+    return [];
+};
+
 const writeSupabaseProjectsCache = (projects) => {
     if (!canUseStorage) {
         return;
@@ -166,7 +200,7 @@ const writeSupabaseProjectsCache = (projects) => {
 
 const readProjectsFromSupabase = async () => {
     const query = 'select=id,title,image,github,demo,tags,desc,is_new,is_featured,is_popular,created_at,sort_order&order=sort_order.asc,created_at.desc';
-    const response = await fetch(getSupabaseProjectsEndpoint(query), {
+    const response = await fetchWithTimeout(getSupabaseProjectsEndpoint(query), {
         method: 'GET',
         headers: createSupabaseHeaders()
     });
@@ -237,9 +271,9 @@ export const subscribeToProjects = (onData, onError, options = {}) => {
     const refreshMs = Number(options.refreshMs) || PROJECTS_REFRESH_MS;
 
     if (isSupabaseProjectsConfigured()) {
-        const cachedProjects = readSupabaseProjectsCache();
-        if (cachedProjects.length > 0) {
-            onData(cachedProjects);
+        const immediateProjects = getImmediateProjectsForSupabase();
+        if (immediateProjects.length > 0) {
+            onData(immediateProjects);
         }
     }
 

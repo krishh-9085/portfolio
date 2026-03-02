@@ -235,9 +235,11 @@ const Portfolio = () => {
       </div>
 
       <div className='portfolio__pagination-wrap'>
-        <p className='portfolio__pagination-summary'>
-          Showing {projects.length === 0 ? 0 : startIndex + 1}-{Math.min(endIndex, projects.length)} of {projects.length} projects
-        </p>
+        {!isLoading && (
+          <p className='portfolio__pagination-summary'>
+            Showing {projects.length === 0 ? 0 : startIndex + 1}-{Math.min(endIndex, projects.length)} of {projects.length} projects
+          </p>
+        )}
 
         {totalPages > 1 && (
           <div className='portfolio__pagination' role='navigation' aria-label='Projects pagination'>

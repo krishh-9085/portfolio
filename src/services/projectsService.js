@@ -2,6 +2,7 @@ import defaultProjects from '../data/defaultProjects';
 import { isAdminAuthenticated } from './adminAuthService';
 
 const PROJECTS_STORAGE_KEY = 'portfolio_projects_v1';
+const SUPABASE_PROJECTS_CACHE_KEY = 'portfolio_projects_supabase_cache_v1';
 const PROJECTS_UPDATED_EVENT = 'portfolio-projects-updated';
 const PROJECTS_REFRESH_MS = 30000;
 const SUPABASE_URL = process.env.REACT_APP_SUPABASE_URL;
@@ -127,6 +128,42 @@ const writeProjectsToStorage = (projects) => {
     }
 };
 
+const readSupabaseProjectsCache = () => {
+    if (!canUseStorage) {
+        return [];
+    }
+
+    const raw = window.localStorage.getItem(SUPABASE_PROJECTS_CACHE_KEY);
+    if (!raw) {
+        return [];
+    }
+
+    try {
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed)) {
+            return [];
+        }
+
+        return parsed.map((project, index) => normalizeProject({
+            ...project,
+            sortOrder: Number(project?.sortOrder ?? index)
+        }, `${Date.now()}-cache-${index}`));
+    } catch {
+        return [];
+    }
+};
+
+const writeSupabaseProjectsCache = (projects) => {
+    if (!canUseStorage) {
+        return;
+    }
+
+    try {
+        window.localStorage.setItem(SUPABASE_PROJECTS_CACHE_KEY, JSON.stringify(projects));
+    } catch {
+    }
+};
+
 const readProjectsFromSupabase = async () => {
     const query = 'select=*&order=sort_order.asc,created_at.desc';
     const response = await fetch(getSupabaseProjectsEndpoint(query), {
@@ -144,7 +181,9 @@ const readProjectsFromSupabase = async () => {
         return [];
     }
 
-    return rows.map((row, index) => rowToProject(row, index));
+    const projects = rows.map((row, index) => rowToProject(row, index));
+    writeSupabaseProjectsCache(projects);
+    return projects;
 };
 
 const updateProjectSortOrders = async (projects) => {
@@ -194,10 +233,25 @@ const writeProjects = async (projects) => {
 };
 
 export const subscribeToProjects = (onData, onError) => {
+    if (isSupabaseProjectsConfigured()) {
+        const cachedProjects = readSupabaseProjectsCache();
+        if (cachedProjects.length > 0) {
+            onData(cachedProjects);
+        }
+    }
+
     const syncProjects = async () => {
         try {
             onData(await readProjects());
         } catch (error) {
+            if (isSupabaseProjectsConfigured()) {
+                const cachedProjects = readSupabaseProjectsCache();
+                if (cachedProjects.length > 0) {
+                    onData(cachedProjects);
+                    return;
+                }
+            }
+
             if (onError) {
                 onError(error);
             }

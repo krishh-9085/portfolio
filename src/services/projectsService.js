@@ -165,7 +165,7 @@ const writeSupabaseProjectsCache = (projects) => {
 };
 
 const readProjectsFromSupabase = async () => {
-    const query = 'select=*&order=sort_order.asc,created_at.desc';
+    const query = 'select=id,title,image,github,demo,tags,desc,is_new,is_featured,is_popular,created_at,sort_order&order=sort_order.asc,created_at.desc';
     const response = await fetch(getSupabaseProjectsEndpoint(query), {
         method: 'GET',
         headers: createSupabaseHeaders()
@@ -232,7 +232,10 @@ const writeProjects = async (projects) => {
     emitProjectsUpdated(projects);
 };
 
-export const subscribeToProjects = (onData, onError) => {
+export const subscribeToProjects = (onData, onError, options = {}) => {
+    const autoRefresh = options.autoRefresh !== false;
+    const refreshMs = Number(options.refreshMs) || PROJECTS_REFRESH_MS;
+
     if (isSupabaseProjectsConfigured()) {
         const cachedProjects = readSupabaseProjectsCache();
         if (cachedProjects.length > 0) {
@@ -240,7 +243,15 @@ export const subscribeToProjects = (onData, onError) => {
         }
     }
 
+    let isSyncing = false;
+
     const syncProjects = async () => {
+        if (isSyncing) {
+            return;
+        }
+
+        isSyncing = true;
+
         try {
             onData(await readProjects());
         } catch (error) {
@@ -255,6 +266,8 @@ export const subscribeToProjects = (onData, onError) => {
             if (onError) {
                 onError(error);
             }
+        } finally {
+            isSyncing = false;
         }
     };
 
@@ -268,8 +281,8 @@ export const subscribeToProjects = (onData, onError) => {
         window.addEventListener(PROJECTS_UPDATED_EVENT, handleInTabUpdate);
     }
 
-    if (isSupabaseProjectsConfigured()) {
-        const refreshTimer = setInterval(syncProjects, PROJECTS_REFRESH_MS);
+    if (isSupabaseProjectsConfigured() && autoRefresh) {
+        const refreshTimer = setInterval(syncProjects, Math.max(15000, refreshMs));
 
         return () => {
             clearInterval(refreshTimer);

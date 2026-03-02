@@ -30,7 +30,7 @@ const defaultProjects = [
     {
         id: '4',
         title: '🚀 Chatty - Next-Gen Real-Time Chat Platform',
-        image: 'https://plus.unsplash.com/premium_photo-1732652377916-b7ffb770aada?auto=format&fit=crop&q=80&w=1170',
+        image: 'https://plus.unsplash.com/premium_photo-1732652377916-b7ffb770aada?auto=format&fit=crop&q=70&w=600',
         github: 'https://github.com/krishh-9085/Chatty',
         demo: 'https://chatty-app.sevalla.app/',
         tags: ['React', 'Node.js', 'Socket.io', 'MongoDB', 'JWT'],

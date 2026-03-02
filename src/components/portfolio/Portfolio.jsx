@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { subscribeToProjects } from '../../services/projectsService';
+import { getOptimizedProjectImageUrl } from '../../services/cloudinaryService';
 import './portfolio.css';
 
 const ITEMS_PER_PAGE = 6;
@@ -26,7 +27,8 @@ const Portfolio = () => {
       },
       () => {
         setIsLoading(false);
-      }
+      },
+      { autoRefresh: false }
     );
 
     return () => unsubscribe();
@@ -115,6 +117,8 @@ const Portfolio = () => {
           : paginatedProjects.map(({ id, image, title, github, demo, tags = [], desc, isNew, isFeatured, isPopular }, index) => {
             const isVisible = visibleItems.has(String(id));
             const animationDelay = `${index * 100}ms`;
+            const imageSrc = getOptimizedProjectImageUrl(image, { width: 600 });
+            const imageSrcSet = `${getOptimizedProjectImageUrl(image, { width: 400 })} 400w, ${getOptimizedProjectImageUrl(image, { width: 600 })} 600w, ${getOptimizedProjectImageUrl(image, { width: 900 })} 900w`;
             const badges = [];
 
             if (isNew) {
@@ -136,11 +140,15 @@ const Portfolio = () => {
               >
                 <div className='portfolio__item-image'>
                   <img
-                    src={image}
+                    src={imageSrc}
+                    srcSet={imageSrcSet}
+                    sizes='(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw'
                     width='600'
                     height='420'
                     alt={title}
                     loading="lazy"
+                    decoding='async'
+                    fetchPriority={index === 0 && currentPage === 1 ? 'high' : 'low'}
                   />
 
                   {/* Hover overlay with quick actions */}

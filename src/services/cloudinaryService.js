@@ -2,6 +2,60 @@ const CLOUDINARY_CLOUD_NAME = process.env.REACT_APP_CLOUDINARY_CLOUD_NAME;
 const CLOUDINARY_UPLOAD_PRESET = process.env.REACT_APP_CLOUDINARY_UPLOAD_PRESET;
 const CLOUDINARY_FOLDER = process.env.REACT_APP_CLOUDINARY_FOLDER || 'portfolio-projects';
 
+const CLOUDINARY_UPLOAD_SEGMENT = '/upload/';
+
+const isCloudinaryDeliveryUrl = (urlObject) => (
+    urlObject.hostname.includes('res.cloudinary.com')
+    && urlObject.pathname.includes(CLOUDINARY_UPLOAD_SEGMENT)
+);
+
+const optimizeCloudinaryDeliveryUrl = (urlObject, width) => {
+    const optimizedTransform = `f_auto,q_auto,w_${width},c_limit,dpr_auto`;
+
+    if (urlObject.pathname.includes(`${CLOUDINARY_UPLOAD_SEGMENT}${optimizedTransform}/`)) {
+        return urlObject.toString();
+    }
+
+    urlObject.pathname = urlObject.pathname.replace(
+        CLOUDINARY_UPLOAD_SEGMENT,
+        `${CLOUDINARY_UPLOAD_SEGMENT}${optimizedTransform}/`
+    );
+
+    return urlObject.toString();
+};
+
+const optimizeUnsplashUrl = (urlObject, width) => {
+    urlObject.searchParams.set('auto', 'format');
+    urlObject.searchParams.set('fit', 'crop');
+    urlObject.searchParams.set('q', '70');
+    urlObject.searchParams.set('w', String(width));
+    return urlObject.toString();
+};
+
+export const getOptimizedProjectImageUrl = (imageUrl, options = {}) => {
+    if (!imageUrl) {
+        return '';
+    }
+
+    const width = Number(options.width || 600);
+
+    try {
+        const urlObject = new URL(imageUrl);
+
+        if (isCloudinaryDeliveryUrl(urlObject)) {
+            return optimizeCloudinaryDeliveryUrl(urlObject, width);
+        }
+
+        if (urlObject.hostname.includes('unsplash.com')) {
+            return optimizeUnsplashUrl(urlObject, width);
+        }
+
+        return imageUrl;
+    } catch {
+        return imageUrl;
+    }
+};
+
 export const isCloudinaryConfigured = () => Boolean(CLOUDINARY_CLOUD_NAME && CLOUDINARY_UPLOAD_PRESET);
 
 const uploadToCloudinary = async (file, options = {}) => {
@@ -45,7 +99,7 @@ const uploadToCloudinary = async (file, options = {}) => {
         throw new Error('Cloudinary did not return a secure image URL.');
     }
 
-    return json.secure_url;
+    return getOptimizedProjectImageUrl(json.secure_url, { width: 900 });
 };
 
 export const uploadImageToCloudinary = async (file) => (
